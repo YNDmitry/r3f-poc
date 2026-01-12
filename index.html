@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + Webflow Integration</title>
+  </head>
+    <!--Data scene should be "arcade" or "compare-duo"-->
+
+    <div style="width: 100vw; height: 100vh; background: #000;">
+      <div
+        class="arcade-scene_canvas"
+        data-tres="scene"
+        data-scene="arcade"
+        data-model-a="/model-1.glb"
+        data-model-b="/model-2.glb"
+        style="width: 100%; height: 100%; display: block;"
+      ></div>
+    </div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

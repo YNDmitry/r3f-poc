@@ -1,0 +1,147 @@
+/* The Leader Line (SVG) */
+.hud-leader {
+  width: 8rem; 
+  height: 2rem; 
+  overflow: visible;
+  flex-shrink: 0;
+  z-index: 1;
+  /* Neon Glow */
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+}
+
+.hud-leader path {
+  fill: none;
+  stroke: white;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  /* Drawing Animation setup */
+  stroke-dasharray: 300; 
+  stroke-dashoffset: 300;
+  animation: drawLeader 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+}
+
+/* The Anchor Dot */
+.hud-leader circle {
+  fill: white;
+  opacity: 0;
+  transform-origin: 12.5rem 0rem; 
+  animation:
+    fadeInDot 0.2s ease-out forwards,
+    pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes drawLeader {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fadeInDot {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px white);
+  }
+  50% {
+    transform: scale(1.5);
+    filter: drop-shadow(0 0 8px white);
+  }
+}
+
+/* The Content Box using Border Image */
+.hud-box {
+  /* The Border Image Magic */
+  /* Increased border width to support thicker visual borders from the SVG slice */
+  border: 1.1rem solid transparent; 
+  
+  /* SVG (Wireframe only - No Fill) */
+  border-image-source: url('../../assets/ui/hud-frame.svg');
+  border-image-slice: 20; 
+  
+  /* Increased width to zoom in on the SVG slice, making lines thicker */
+  border-image-width: 1.3rem; 
+  border-image-repeat: stretch;
+
+  /* Text Styles */
+  color: white;
+  font-family: 'Space Mono', monospace, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  position: relative;
+  min-width: 7rem; /* slightly adjusted */
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden; 
+
+  /* Less padding needed since border is transparent inside */
+  padding: 0 0.2rem;
+
+  /* Glow/Shadow */
+  filter: drop-shadow(0 0 0.5rem rgba(0, 0, 0, 0.5));
+  animation: boxPulse 3s infinite ease-in-out;
+  z-index: 2;
+}
+
+.jenka-tech-hud {
+  justify-content: flex-end;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+
+  transform-origin: left center;
+
+  flex-direction: row-reverse;
+  left: 0;
+  transform: translate(0, calc(-50% - 1rem));
+  opacity: 0;
+  animation: hudFadeIn 0.3s ease-out forwards;
+}
+
+.jenka-tech-hud .hud-leader {
+  transform: scaleX(-1);
+}
+
+.jenka-tech-hud.is-mirrored {
+  flex-direction: row;
+  transform: translate(-100%, calc(-50% - 1rem));
+}
+
+.jenka-tech-hud.is-mirrored .hud-leader {
+  transform: none;
+}
+
+@keyframes hudFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(0, calc(-40% - 1rem));
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, calc(-50% - 1rem));
+  }
+}
+
+@keyframes hudFadeInMirrored {
+  from {
+    opacity: 0;
+    transform: translate(-100%, calc(-40% - 1rem));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-100%, calc(-50% - 1rem));
+  }
+}
+
+.jenka-tech-hud.is-mirrored {
+  animation: hudFadeInMirrored 0.3s ease-out forwards;
+}
