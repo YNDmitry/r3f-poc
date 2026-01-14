@@ -1,11 +1,8 @@
 import { Suspense } from 'react'
 import { EffectComposer, Bloom, BrightnessContrast } from '@react-three/postprocessing'
 import { HalfFloatType } from 'three'
-import { useDevice } from '../../hooks/useDevice'
 
 export function Effects() {
-  const device = useDevice()
-  
   return (
     <Suspense fallback={null}>
       <EffectComposer
