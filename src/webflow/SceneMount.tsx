@@ -4,6 +4,7 @@ import { Scene } from '../Scene'
 import { ArcadeScene } from '../ArcadeScene'
 import { PerformanceMonitor, Stats } from '@react-three/drei'
 import { preloadSceneModels } from '../utils/preloadSceneModels'
+import { useDevice } from '../hooks/useDevice'
 
 export interface WebflowSceneConfig {
   scene: string
@@ -14,9 +15,25 @@ export interface WebflowSceneConfig {
 
 export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const device = useDevice()
   const [inView, setInView] = useState(false)
   const [dpr, setDpr] = useState(2)
   const [debug, setDebug] = useState(false)
+  const [mode, setMode] = useState<string>((window as any).jenkaLastMode || 'grid')
+
+  // Listen for mode changes to handle pointer-events
+  useEffect(() => {
+    const handleSetMode = (event: Event) => {
+      const customEvent = event as CustomEvent<{ mode: string }>
+      const newMode = customEvent.detail?.mode
+      if (newMode) {
+        setMode(newMode)
+        ;(window as any).jenkaLastMode = newMode
+      }
+    }
+    window.addEventListener('jenka-set-mode', handleSetMode)
+    return () => window.removeEventListener('jenka-set-mode', handleSetMode)
+  }, [])
 
   // Preload models immediately when config is available
   useEffect(() => {
@@ -70,6 +87,9 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
       )}
 
       <Canvas
+        style={{
+          pointerEvents: device === 'mobile' && mode === 'grid' ? 'none' : 'auto',
+        }}
         frameloop={inView ? 'always' : 'never'}
         dpr={dpr}
         gl={{

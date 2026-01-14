@@ -104,6 +104,11 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       }
     }
     window.addEventListener('jenka-set-mode', handleSetMode)
+    
+    // Check for initial state if triggered before mount
+    const initialMode = (window as any).jenkaLastMode
+    if (initialMode) setMode(initialMode)
+
     return () => window.removeEventListener('jenka-set-mode', handleSetMode)
   }, [])
 
