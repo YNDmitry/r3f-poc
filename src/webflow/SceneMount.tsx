@@ -17,9 +17,14 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const device = useDevice()
   const [inView, setInView] = useState(false)
-  const [dpr, setDpr] = useState(window.devicePixelRatio)
+  const [dpr, setDpr] = useState(2)
   const [debug, setDebug] = useState(false)
   const [mode, setMode] = useState<string>((window as any).jenkaLastMode || 'grid')
+  const [isTouch, setIsTouch] = useState(false)
+
+  useEffect(() => {
+    setIsTouch(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
 
   // Listen for mode changes to handle pointer-events
   useEffect(() => {
@@ -88,7 +93,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
 
       <Canvas
         style={{
-          pointerEvents: device !== 'desktop' && mode === 'grid' ? 'none' : 'auto',
+          pointerEvents: (device !== 'desktop' || isTouch) && mode === 'grid' ? 'none' : 'auto',
           touchAction: 'pan-y',
         }}
         frameloop={inView ? 'always' : 'never'}
