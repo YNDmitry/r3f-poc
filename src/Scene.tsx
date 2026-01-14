@@ -234,7 +234,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             isRotating={isRotating}
             onClick={() => setMode((m) => (m === 'focus-a' ? 'grid' : 'focus-a'))}
             onPointerOver={() => {
-              if (mode === 'grid') document.body.style.cursor = 'pointer'
+              if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
             }}
             onPointerOut={() => (document.body.style.cursor = 'auto')}
           />
@@ -247,7 +247,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             isRotating={isRotating}
             onClick={() => setMode((m) => (m === 'focus-b' ? 'grid' : 'focus-b'))}
             onPointerOver={() => {
-              if (mode === 'grid') document.body.style.cursor = 'pointer'
+              if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
             }}
             onPointerOut={() => (document.body.style.cursor = 'auto')}
           />

@@ -17,7 +17,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const device = useDevice()
   const [inView, setInView] = useState(false)
-  const [dpr, setDpr] = useState(2)
+  const [dpr, setDpr] = useState(window.devicePixelRatio)
   const [debug, setDebug] = useState(false)
   const [mode, setMode] = useState<string>((window as any).jenkaLastMode || 'grid')
 
@@ -88,7 +88,8 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
 
       <Canvas
         style={{
-          pointerEvents: device === 'mobile' && mode === 'grid' ? 'none' : 'auto',
+          pointerEvents: device !== 'desktop' && mode === 'grid' ? 'none' : 'auto',
+          touchAction: 'pan-y',
         }}
         frameloop={inView ? 'always' : 'never'}
         dpr={dpr}

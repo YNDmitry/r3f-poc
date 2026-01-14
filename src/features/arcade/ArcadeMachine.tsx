@@ -84,7 +84,7 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
       onPointerOver={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         setHovered(true)
-        if (state === 'back') document.body.style.cursor = 'pointer'
+        if (state === 'back' && device === 'desktop') document.body.style.cursor = 'pointer'
       }}
       onPointerOut={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
