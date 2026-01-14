@@ -20,14 +20,32 @@ canvas {
 
 /* 
   Mobile/Touch Optimization:
-  In 'grid' mode on touch devices, we disable pointer events on the canvas 
-  to ensure the user can scroll the page freely without accidentally 
-  interacting with the 3D scene.
+  Disable pointer events on the canvas in 'grid' mode for ALL touch devices 
+  and small screens via Media Queries (no JS delay).
 */
+
+/* 1. Class-based (JS detected) */
 .r3f-canvas-container.mode-grid.is-touch canvas,
 .r3f-canvas-container.mode-grid.is-mobile canvas,
 .r3f-canvas-container.mode-grid.is-tablet canvas {
   pointer-events: none !important;
+}
+
+/* 2. Media Query Fallback (Immediate CSS enforcement) 
+   If width < 991px (Tablet/Mobile) AND inside mode-grid (which is set early),
+   force pointer-events: none.
+*/
+@media (max-width: 991px) {
+  .r3f-canvas-container.mode-grid canvas {
+    pointer-events: none !important;
+  }
+}
+
+/* 3. Pointer Coarse (Touch devices) Fallback */
+@media (pointer: coarse) {
+  .r3f-canvas-container.mode-grid canvas {
+    pointer-events: none !important;
+  }
 }
 
 .grabbing, .grabbing * {

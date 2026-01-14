@@ -105,6 +105,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
       )}
 
       <Canvas
+        className="r3f-canvas-element"
         frameloop={inView ? 'always' : 'never'}
         dpr={dpr}
         gl={{
@@ -125,6 +126,40 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
           <Scene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />
         )}
       </Canvas>
+      
+      {/* 
+        Scroll Overlay Shield:
+        An absolute transparent div that covers the canvas in grid mode on touch devices.
+        It captures no events itself (pointer-events: none is NOT set here, wait...)
+        Actually, if we want SCROLL, we want this div to NOT capture pointer events?
+        No, if we want native scroll, we want the events to pass through to the DOCUMENT.
+        But if the Canvas eats them (even with pointer-events: none?), we are in trouble.
+        
+        Wait, if pointer-events: none is on Canvas, clicks go to what's behind it.
+        Behind it is this container div. If this container div allows scroll, good.
+        
+        Let's try a different approach:
+        If we put a div ON TOP that is `pointer-events: auto` but has `touch-action: pan-y`,
+        browsers prioritize scrolling on it.
+      */}
+      {(isTouch || device !== 'desktop') && mode === 'grid' && (
+        <div 
+          className="scroll-shield"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 50,
+            touchAction: 'pan-y', // Allow vertical scroll
+            // We do NOT set pointer-events: none here. 
+            // We want this div to be the target of the touch.
+            // Since it's empty and transparent, and has pan-y, 
+            // the browser will scroll.
+            // Horizontal swipes might be dead though?
+            // If we want horizontal rotation, we can't have a full shield.
+            // But user asked to DISABLE events in grid mode.
+          }} 
+        />
+      )}
     </div>
   )
 }
