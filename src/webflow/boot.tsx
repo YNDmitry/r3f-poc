@@ -1,6 +1,12 @@
-import React from 'react'
-import { createRoot, Root } from 'react-dom/client'
-import { SceneMount } from './SceneMount'; import type { WebflowSceneConfig } from './SceneMount'
+import { createRoot, type Root } from 'react-dom/client'
+import { SceneMount } from './SceneMount'
+import type { WebflowSceneConfig } from './SceneMount'
+
+declare global {
+  interface Window {
+    WebflowTresScenes: any
+  }
+}
 
 // --- Config Parser ---
 
@@ -18,12 +24,7 @@ function parseConfig(el: HTMLElement): WebflowSceneConfig {
     scene: rawType,
     modelA: safeUrl(ds.modelA || null),
     modelB: safeUrl(ds.modelB || null),
-    hdr: safeUrl(ds.hdr || null),
     poster: safeUrl(ds.poster || null), // Support data-poster
-    hideSpinner: ds.hideSpinner !== undefined,
-    exposure: ds.exposure ? Number.parseFloat(ds.exposure) : undefined,
-    bloom: ds.bloom ? Number.parseFloat(ds.bloom) : undefined,
-    envIntensity: ds.envIntensity ? Number.parseFloat(ds.envIntensity) : undefined,
   }
 }
 
@@ -37,17 +38,17 @@ export function mountAll() {
   elements.forEach((el) => {
     if (mountedRoots.has(el)) return
 
-    const tresAttr = el.dataset.tres || ''
-    if (!tresAttr) return
+    const sceneAttr = el.dataset.tres || ''
+    if (!sceneAttr) return
 
     try {
       const config = parseConfig(el)
       const root = createRoot(el)
-      
+
       root.render(<SceneMount config={config} />)
-      
+
       mountedRoots.set(el, root)
-      el.dataset.tresManaged = 'true'
+      el.dataset.sceneManaged = 'true'
     } catch (err) {
       console.error('[WebflowTres] Failed to mount scene:', el, err)
       el.dataset.tresState = 'error'
@@ -59,7 +60,7 @@ export function unmountAll() {
   mountedRoots.forEach((root, el) => {
     root.unmount()
     el.innerHTML = ''
-    delete el.dataset.tresManaged
+    delete el.dataset.sceneManaged
     delete el.dataset.tresState
   })
   mountedRoots.clear()
@@ -77,7 +78,7 @@ if (typeof window !== 'undefined') {
     mountAll,
     unmountAll,
     refresh,
-    version: '1.0.0', 
+    version: '1.0.0',
   }
 
   const init = () => {
@@ -93,6 +94,17 @@ if (typeof window !== 'undefined') {
 
   const observer = new MutationObserver((mutations) => {
     let shouldMount = false
+
+    // 1. Cleanup disconnected roots (Fix Memory Leak)
+    mountedRoots.forEach((root, el) => {
+      if (!el.isConnected) {
+        root.unmount()
+        mountedRoots.delete(el)
+        console.log('[WebflowTres] Auto-unmounted disconnected root', el)
+      }
+    })
+
+    // 2. Check for new nodes
     for (const m of mutations) {
       if (m.type !== 'childList') continue
       for (const node of Array.from(m.addedNodes)) {
@@ -105,6 +117,7 @@ if (typeof window !== 'undefined') {
       }
       if (shouldMount) break
     }
+
     if (shouldMount) mountAll()
   })
 

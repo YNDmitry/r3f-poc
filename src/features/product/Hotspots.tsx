@@ -1,57 +1,66 @@
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useMemo, useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { Html, Billboard } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { createStarTexture } from '../../utils/createStarTexture'
-import { useSceneConfig } from '../../config/SceneConfigContext'
-import type { ProductType } from '../../config/scene-config'
+import { useSceneConfig } from '../../config/SceneContext'
+import type { ProductType, HotspotItem } from '../../config/scene-config'
 import { useCinematicCamera } from '../../hooks/useCinematicCamera'
 import { Hud } from '../../components/Hud/Hud'
+import { motion } from 'framer-motion-3d'
 
 interface HotspotsProps {
   type: ProductType
   active: boolean
-  controlsRef: any
+  controlsRef: React.RefObject<OrbitControlsImpl | null>
+  visible?: boolean
 }
 
 // Individual Hotspot Component for better control
-function HotspotItem({ 
-  item, 
-  texture, 
-  onHover, 
-  onLeave 
-}: { 
-  item: any, 
-  texture: THREE.Texture, 
-  onHover: (id: string) => void,
-  onLeave: () => void 
+function HotspotItem({
+  item,
+  texture,
+  onHover,
+  onLeave,
+  globalVisible = true,
+}: {
+  item: HotspotItem
+  texture: THREE.Texture
+  onHover: (id: string) => void
+  onLeave: () => void
+  globalVisible?: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null!)
 
   useFrame((state) => {
+    // Only animate pulsing if globally visible (logic kept for perf)
     if (meshRef.current && !hovered) {
       const time = state.clock.elapsedTime
-      // Pulsing when NOT hovered
       const scale = 1.0 + Math.sin(time * 3) * 0.15
       meshRef.current.scale.set(scale, scale, 1)
-      ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = 0.8 + Math.sin(time * 2) * 0.2
+      ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.8 + Math.sin(time * 2) * 0.2
     } else if (meshRef.current && hovered) {
-      // Hide on hover (fade out)
       meshRef.current.scale.lerp(new THREE.Vector3(0, 0, 0), 0.2)
     }
   })
 
   return (
-    <group position={item.position}>
+    <group position={item.position as [number, number, number]}>
       {/* Visual Star (Billboard makes it always face camera) */}
       <Billboard>
         <mesh ref={meshRef}>
-          <planeGeometry args={[0.15, 0.15]} /> 
-          <meshBasicMaterial 
-            map={texture} 
-            transparent 
-            depthTest={false} 
+          <planeGeometry args={[0.15, 0.15]} />
+          {/* Transparent must be true for parent opacity fade to work on children materials if we used a custom shader,
+              but standard materials might not inherit group opacity automatically in R3F without traverse.
+              However, motion.group usually handles prop drilling or matrix scaling.
+              Let's see. If opacity doesn't propagate, scaling will still look like a "pop out". */}
+          <meshBasicMaterial
+            map={texture}
+            transparent
+            depthTest={false}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
           />
@@ -61,10 +70,11 @@ function HotspotItem({
       {/* Invisible Hitbox */}
       <mesh
         onPointerOver={(e) => {
+          if (!globalVisible) return
           e.stopPropagation()
           setHovered(true)
           onHover(item.id)
-          document.body.style.cursor = 'pointer' // FIX: Use pointer cursor
+          document.body.style.cursor = 'pointer'
         }}
         onPointerOut={(e) => {
           e.stopPropagation()
@@ -78,8 +88,8 @@ function HotspotItem({
         <meshBasicMaterial />
       </mesh>
 
-      {hovered && (
-        <Html distanceFactor={1.2} transform={false} style={{ pointerEvents: 'none' }}>
+      {hovered && globalVisible && (
+        <Html distanceFactor={1} transform={false} style={{ pointerEvents: 'none' }}>
           <Hud item={item} />
         </Html>
       )}
@@ -87,14 +97,14 @@ function HotspotItem({
   )
 }
 
-export function Hotspots({ type, active, controlsRef }: HotspotsProps) {
+export function Hotspots({ type, active, controlsRef, visible = true }: HotspotsProps) {
   const config = useSceneConfig()
   const items = config.customHotspots[type]
-  
+
   const [cameraTargetId, setCameraTargetId] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
-  
-  const leaveTimer = useRef<any>(null)
+
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const starTexture = useMemo(() => createStarTexture(), [])
 
   useEffect(() => {
@@ -115,14 +125,37 @@ export function Hotspots({ type, active, controlsRef }: HotspotsProps) {
 
   if (!active || isMobile) return null
 
+  const variants = {
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+      transition: { duration: 0.15, ease: 'easeIn' },
+    },
+  }
+
   return (
-    <group>
+    <motion.group
+      initial="visible"
+      animate={visible ? 'visible' : 'hidden'}
+      variants={variants}
+      // Disable pointer events when hidden to prevent clicking invisible hotspots
+      visible={true} // Keep Three.js object visible for animation to play out
+    >
       {items.map((item) => (
         <HotspotItem
           key={item.id}
           item={item}
           texture={starTexture}
+          // We pass globalVisible logic via props to disable interactions,
+          // but visual hiding is now handled by the parent motion.group
+          globalVisible={visible}
           onHover={(id) => {
+            if (!visible) return // Double check
             if (leaveTimer.current) {
               clearTimeout(leaveTimer.current)
               leaveTimer.current = null
@@ -131,11 +164,11 @@ export function Hotspots({ type, active, controlsRef }: HotspotsProps) {
           }}
           onLeave={() => {
             leaveTimer.current = setTimeout(() => {
-               setCameraTargetId(null)
+              setCameraTargetId(null)
             }, 300)
           }}
         />
       ))}
-    </group>
+    </motion.group>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { createStarTexture } from '../../utils/createStarTexture'
@@ -8,8 +8,8 @@ class GlintAnimator {
   mesh: THREE.Mesh
   offset: number
   
-  constructor(texture: THREE.Texture) {
-    const geometry = new THREE.PlaneGeometry(0.15, 0.15)
+  constructor(texture: THREE.Texture, geometry: THREE.PlaneGeometry) {
+    // Use shared geometry
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
@@ -33,11 +33,6 @@ class GlintAnimator {
     // Logic: If not visible, force scale to 0 smoothly (simulated by modifying sparkle factor)
     if (!visible) {
         sparkle = 0;
-        // Use slight lerp for smoothness if we had a previous state, 
-        // but here we rely on the frame loop. 
-        // To make it truly smooth fading out, we'd need internal state, 
-        // but snapping to 0 scale is usually fine for "hiding during fast motion".
-        // Let's make it invisible instantly to prevent misclicks as requested.
         this.mesh.visible = false;
         return;
     }
@@ -52,72 +47,92 @@ class GlintAnimator {
   }
   
   dispose() {
-    this.mesh.geometry.dispose()
+    // Geometry is shared, do not dispose it here!
+    // this.mesh.geometry.dispose() 
     ;(this.mesh.material as THREE.Material).dispose()
   }
 }
 
-export function Glints({ scene, visible = true }: { scene: THREE.Object3D, visible?: boolean }) {
+export function Glints({ positions = [], visible = true }: { positions?: [number, number, number][], visible?: boolean }) {
   const texture = useMemo(() => createStarTexture(), [])
   const animators = useMemo<GlintAnimator[]>(() => [], [])
+  // Optimization: Share geometry across all glints
+  const sharedGeometry = useMemo(() => new THREE.PlaneGeometry(0.15, 0.15), [])
 
   useEffect(() => {
-    const candidates: THREE.Object3D[] = []
-    
-    scene.traverse((obj) => {
-      if ((obj as THREE.Mesh).isMesh) {
-        const name = obj.name.toLowerCase()
-        if (
-          !name.includes('glass') &&
-          !name.includes('screen') &&
-          !name.includes('window') &&
-          !name.includes('display') &&
-          !name.includes('plane')
-        ) {
-          candidates.push(obj)
-        }
-      }
-    })
-
-    // Shuffle and pick 5
-    for (let i = candidates.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      const temp = candidates[i]
-      candidates[i] = candidates[j]
-      candidates[j] = temp
-    }
-    const targets = candidates.slice(0, 5)
-
-    targets.forEach(target => {
-      const animator = new GlintAnimator(texture)
-      
-      if ((target as THREE.Mesh).geometry) {
-         (target as THREE.Mesh).geometry.computeBoundingSphere()
-         const sphere = (target as THREE.Mesh).geometry.boundingSphere
-         if (sphere) {
-             animator.mesh.position.copy(sphere.center)
-             animator.mesh.position.z += sphere.radius 
-         }
-      }
-      
-      target.add(animator.mesh)
-      animators.push(animator)
-    })
-
-    return () => {
-      animators.forEach(a => {
+    // Clear old animators
+    animators.forEach(a => {
         a.mesh.removeFromParent()
         a.dispose()
-      })
-      animators.length = 0
-    }
-  }, [scene, texture, animators])
+    })
+    animators.length = 0
 
+    positions.forEach(pos => {
+      // Pass shared geometry
+      const animator = new GlintAnimator(texture, sharedGeometry)
+      animator.mesh.position.set(pos[0], pos[1], pos[2])
+      
+      // We need to add it to a parent group. 
+      // Since Glints is used inside <primitive> in ProductModel, 
+      // we can't easily add to the parent "scene" without passing it.
+      // BUT, we can just return a <group> and add meshes to it in React.
+      // However, the current class-based approach is imperative.
+      // Let's adapt: The parent of this component is the <ProductModel> fragment.
+      // We should return a group and add meshes to ref.
+    })
+    // REFACTOR: The imperative approach was designed for attaching to arbitrary scene graph nodes.
+    // Now we have explicit positions. It's better to just render them declaratively.
+  }, [positions, texture, animators, sharedGeometry])
+  
+  // Declarative render
   useFrame((state) => {
-    const time = state.clock.elapsedTime
-    // Pass the 'visible' prop down to the update loop
-    animators.forEach(a => a.update(time, state.camera, visible))
+     const time = state.clock.elapsedTime
+     animators.forEach(a => a.update(time, state.camera, visible))
   })
 
-  return null
+  return (
+    <group>
+        {positions.map((pos, i) => (
+            <GlintItem key={i} position={pos} texture={texture} geometry={sharedGeometry} visible={visible} />
+        ))}
+    </group>
+  )
+}
+
+function GlintItem({ position, texture, geometry, visible }: { position: [number, number, number], texture: THREE.Texture, geometry: THREE.PlaneGeometry, visible: boolean }) {
+    const meshRef = useRef<THREE.Mesh>(null!)
+    const offset = useMemo(() => Math.random() * 100, [])
+
+    useFrame((state) => {
+        if (!meshRef.current) return
+        const time = state.clock.elapsedTime
+        const t = Math.sin((time + offset) * 3)
+        const opacity = (t + 1) / 2
+        let sparkle = Math.pow(opacity, 10)
+
+        if (!visible) {
+            sparkle = 0
+            meshRef.current.visible = false
+        } else {
+            meshRef.current.visible = true
+            meshRef.current.scale.setScalar(sparkle)
+            ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = sparkle
+            meshRef.current.rotation.z += 0.01
+            meshRef.current.lookAt(state.camera.position)
+        }
+    })
+
+    return (
+        <mesh ref={meshRef} position={position} geometry={geometry}>
+            <meshBasicMaterial 
+                map={texture} 
+                transparent 
+                depthWrite={false} 
+                depthTest={false} 
+                blending={THREE.AdditiveBlending} 
+                color="white" 
+                side={THREE.DoubleSide} 
+            />
+        </mesh>
+    )
 }

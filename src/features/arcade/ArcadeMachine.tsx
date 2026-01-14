@@ -4,26 +4,27 @@ import { ARCADE_CONSTANTS } from '../../config/arcade-config'
 import { ProductModel } from '../product/ProductModel'
 import { useWebflow } from '../../hooks/useWebflow'
 import { useDevice } from '../../hooks/useDevice'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 
 interface ArcadeMachineProps {
   state: 'front' | 'back'
   url: string
-  onClick: (e: any) => void
+  glintPositions?: [number, number, number][]
+  onClick: (e: ThreeEvent<MouseEvent>) => void
 }
 
-export function ArcadeMachine({ state, url, onClick }: ArcadeMachineProps) {
+export function ArcadeMachine({ state, url, glintPositions = [], onClick }: ArcadeMachineProps) {
   const { states } = ARCADE_CONSTANTS
   const { trigger } = useWebflow()
   const device = useDevice()
-  
+
   const [hovered, setHovered] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false) // Track animation state
   const parallaxGroup = useRef<THREE.Group>(null!)
-  
+
   const mouse = useRef({ x: 0, y: 0 })
-  
+
   const frontCfg = states.front[device] || states.front.desktop
   const backCfg = states.back[device] || states.back.desktop
 
@@ -34,8 +35,8 @@ export function ArcadeMachine({ state, url, onClick }: ArcadeMachineProps) {
     mouse.current.y += (targetY - mouse.current.y) * 0.1
 
     if (parallaxGroup.current) {
-        parallaxGroup.current.rotation.x = -mouse.current.y * 0.05 
-        parallaxGroup.current.rotation.y = mouse.current.x * 0.05
+      parallaxGroup.current.rotation.x = -mouse.current.y * 0.05
+      parallaxGroup.current.rotation.y = mouse.current.x * 0.05
     }
   })
 
@@ -45,7 +46,6 @@ export function ArcadeMachine({ state, url, onClick }: ArcadeMachineProps) {
       // Listen to animation lifecycle
       onAnimationStart={() => setIsAnimating(true)}
       onAnimationComplete={() => setIsAnimating(false)}
-      
       variants={{
         front: {
           x: frontCfg.pos[0],
@@ -64,48 +64,49 @@ export function ArcadeMachine({ state, url, onClick }: ArcadeMachineProps) {
           rotateY: backCfg.rot[1],
           rotateZ: backCfg.rot[2],
           scale: backCfg.scale,
-        }
+        },
       }}
       transition={{
         duration: ARCADE_CONSTANTS.animation.swapDuration,
-        type: "spring",
+        type: 'spring',
         stiffness: 60,
-        damping: 12
+        damping: 12,
       }}
-      onClick={(e: any) => {
+      onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         if (state === 'back') {
-             onClick(e)
-             trigger('From canvas')
+          onClick(e)
+          trigger('From canvas')
         } else {
-             trigger('From canvas')
+          trigger('From canvas')
         }
       }}
-      onPointerOver={(e: any) => {
+      onPointerOver={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         setHovered(true)
         if (state === 'back') document.body.style.cursor = 'pointer'
       }}
-      onPointerOut={(e: any) => {
+      onPointerOut={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         setHovered(false)
         document.body.style.cursor = 'auto'
       }}
     >
       <group ref={parallaxGroup}>
-        <motion.group 
-          animate={{ 
-             y: hovered && state === 'back' ? 0.08 : 0,
-             scale: hovered && state === 'back' ? 1.025 : 1
+        <motion.group
+          animate={{
+            y: hovered && state === 'back' ? 0.08 : 0,
+            scale: hovered && state === 'back' ? 1.025 : 1,
           }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-           {/* Hide glints while animating (swapping) */}
-           <ProductModel 
-             url={url} 
-             withGlints={true} 
-             glintsVisible={!isAnimating} 
-           /> 
+          {/* Hide glints while animating (swapping) */}
+          <ProductModel
+            url={url}
+            withGlints={state === 'front'}
+            glintsVisible={!isAnimating}
+            glintPositions={glintPositions}
+          />
         </motion.group>
       </group>
     </motion.group>

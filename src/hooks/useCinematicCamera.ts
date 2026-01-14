@@ -1,14 +1,15 @@
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useEffect, useRef } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { animate, useMotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import type { HotspotItem } from '../config/scene-config'
-import { useSceneConfig } from '../config/SceneConfigContext'
+import { useSceneConfig } from '../config/SceneContext'
 import { useDevice } from './useDevice'
 
 export function useCinematicCamera(
   active: boolean,
-  controlsRef: any,
+  controlsRef: React.RefObject<OrbitControlsImpl | null>,
   hoveredId: string | null,
   items: ReadonlyArray<HotspotItem>
 ) {
@@ -113,7 +114,7 @@ export function useCinematicCamera(
          })
       }
     }
-  }, [hoveredId, active, camera, controlsRef, items, stagePos])
+  }, [hoveredId, active, camera, controlsRef, items, stagePos, transition])
 
   useFrame((state) => {
     if (!active || !controlsRef.current) return
@@ -150,6 +151,7 @@ export function useCinematicCamera(
         THREE.MathUtils.lerp(stateRef.current.startTarget.z, stateRef.current.endTarget.z, t)
       )
 
+      // eslint-disable-next-line react-hooks/immutability
       perspCamera.fov = THREE.MathUtils.lerp(stateRef.current.startFov, stateRef.current.endFov, t)
       perspCamera.updateProjectionMatrix()
       

@@ -9,41 +9,50 @@ export function Lights({ mode }: LightsProps) {
   const keyLightVariants = {
     grid: { x: 3.5, y: 5.5, z: 6.5 },
     'focus-a': { x: -3.5, y: 5.5, z: 6.5 },
-    'focus-b': { x: 3.5, y: 5.5, z: 6.5 }
+    'focus-b': { x: 3.5, y: 5.5, z: 6.5 },
   }
 
   const fillLightVariants = {
     grid: { x: -6.5, y: 2.5, z: 4.0 },
     'focus-a': { x: 6.5, y: 2.5, z: 4.0 },
-    'focus-b': { x: -6.5, y: 2.5, z: 4.0 }
+    'focus-b': { x: -6.5, y: 2.5, z: 4.0 },
   }
 
-  const transition = { duration: 0.8, ease: "easeInOut" }
+  const transition = { duration: 0.8, ease: 'easeInOut' }
 
   return (
     <>
-      {/* Brighter Ambient to lift shadows */}
-      <ambientLight intensity={0.9} />
-      
+      {/*
+        Fake-AO strategy:
+        1. Low ambient light -> Darker shadows in crevices
+        2. Strong Rim light -> Separates object from background (Premium feel)
+        3. Colored Fill -> Adds richness to shadows
+      */}
+      <ambientLight intensity={0.4} />
+
+      {/* Key Light (Warm/Neutral) */}
       <motion.directionalLight
         animate={mode}
         variants={keyLightVariants}
         transition={transition}
-        intensity={1.8} // Slightly boosted key
-        castShadow
+        intensity={1}
         shadow-bias={-0.0001}
       />
+
+      {/* Fill Light (Cool blueish to contrast warm key) */}
       <motion.directionalLight
         animate={mode}
         variants={fillLightVariants}
         transition={transition}
-        intensity={1.0} // Boosted fill to see details in dark areas
-        color="#bcd7ff"
+        intensity={0.3}
+        color="#b0c7ff"
       />
-      <directionalLight
-        position={[0.0, 4.0, -6.0]}
-        intensity={1.5} // Stronger rim light
-      />
+
+      {/* Rim Light (Strong back-light for silhouette) */}
+      {/*<directionalLight position={[0.0, 5.0, -5.0]} intensity={3.0} color="#ffffff" />*/}
+
+      {/* Bottom Uplight (Bounce simulation) */}
+      <directionalLight position={[0.0, -5.0, 2.0]} intensity={0.5} color="#e0e0ff" />
     </>
   )
 }

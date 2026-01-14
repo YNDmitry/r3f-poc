@@ -1,8 +1,11 @@
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import { type ThreeEvent } from '@react-three/fiber'
+import { type TransformData } from '../../config/scene-config'
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion-3d'
 import { useMotionValue } from 'framer-motion'
 import { Bvh } from '@react-three/drei'
-import { useSceneConfig } from '../../config/SceneConfigContext'
+import { useSceneConfig } from '../../config/SceneContext'
 import type { SceneMode, ProductType } from '../../config/scene-config'
 import { useWebflow } from '../../hooks/useWebflow'
 import { ProductModel } from './ProductModel'
@@ -13,10 +16,11 @@ interface ProductProps {
   type: ProductType
   mode: SceneMode
   url: string
-  controlsRef: any
-  onClick: (e: any) => void
-  onPointerOver?: (e: any) => void
-  onPointerOut?: (e: any) => void
+  controlsRef: React.RefObject<OrbitControlsImpl | null>
+  isRotating?: boolean
+  onClick: (e: ThreeEvent<MouseEvent>) => void
+  onPointerOver?: (e: ThreeEvent<MouseEvent>) => void
+  onPointerOut?: (e: ThreeEvent<MouseEvent>) => void
 }
 
 export function Product({
@@ -26,23 +30,23 @@ export function Product({
   onPointerOver,
   onPointerOut,
   url,
-  controlsRef
+  controlsRef,
+  isRotating = false,
 }: ProductProps) {
   const config = useSceneConfig()
-  const { grid, focus } = config
   const { trigger } = useWebflow()
   const device = useDevice() // 'desktop' | 'mobile'
-  
+
   const isA = type === 'a'
-  
+
   // Select config based on device
   // Note: grid[type][device] is correct as per updated type assumption
   const gridCfg = isA ? config.grid[type][device] : config.grid[type][device]
-  
+
   const focusTarget = config.focus[device].target
   const focusBg = config.focus[device].background
 
-  const getTransform = (cfg: any) => ({
+  const getTransform = (cfg: TransformData) => ({
     x: cfg.pos[0],
     y: cfg.pos[1],
     z: cfg.pos[2],
@@ -54,62 +58,65 @@ export function Product({
 
   // MOVEMENT Transition (Slow & Luxurious)
   const moveTransition = { duration: 1.4, ease: [0.16, 1, 0.3, 1] }
-  
+
   // OPACITY Transition (Fast & Snappy to hide artifacts)
-  const fadeTransition = { duration: 0.4, ease: "easeInOut" }
+  const fadeTransition = { delay: 1.0, duration: 0.15, ease: 'easeInOut' }
 
   // Combined transition object
   const combinedTransition = {
     ...moveTransition,
-    opacity: fadeTransition // Override opacity specifically
+    opacity: fadeTransition,
   }
 
   const variants = {
-    hidden: { 
+    hidden: {
       scale: 0.8,
-      y: -1.0, 
+      y: -1.0,
       opacity: 0,
-      transition: { duration: 0.0 }
+      transition: { duration: 0.0 },
     },
     grid: {
       ...getTransform(gridCfg),
       opacity: 1,
-      transition: { 
-          ...moveTransition,
-          duration: 1.6, 
-          // Opacity fades in moderately fast on entry
-          opacity: { duration: 0.8, delay: 0.2 } 
-      } 
+      transition: {
+        ...moveTransition,
+        duration: 1.6,
+        // Add a small initial delay to let the first frame (shader compilation) pass
+        // before starting the heavy transform animation.
+        delay: 0.1,
+        // Opacity fades in moderately fast on entry
+        opacity: { duration: 0.1, delay: 0.1 }, // Adjusted delay to sync
+      },
     },
     'focus-a': isA
-      ? { 
-          ...getTransform(focusTarget), 
-          opacity: 1, 
-          transition: combinedTransition 
+      ? {
+          ...getTransform(focusTarget),
+          opacity: 1,
+          transition: combinedTransition,
         }
-      : { 
-          ...getTransform(focusBg), 
-          opacity: 0, 
-          transition: combinedTransition
+      : {
+          ...getTransform(focusBg),
+          opacity: 0,
+          transition: combinedTransition,
         },
     'focus-b': !isA
-      ? { 
-          ...getTransform(focusTarget), 
-          opacity: 1, 
-          transition: combinedTransition 
+      ? {
+          ...getTransform(focusTarget),
+          opacity: 1,
+          transition: combinedTransition,
         }
-      : { 
-          ...getTransform(focusBg), 
-          opacity: 0, 
-          transition: combinedTransition
-        }
+      : {
+          ...getTransform(focusBg),
+          opacity: 0,
+          transition: combinedTransition,
+        },
   }
 
   const opacity = useMotionValue(1)
   const [hovered, setHovered] = useState(false)
-  const hoverTimeout = useRef<any>(null)
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handlePointerOver = (e: any) => {
+  const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (mode !== 'grid') return
     if (hoverTimeout.current) {
@@ -117,13 +124,13 @@ export function Product({
       hoverTimeout.current = null
     }
     setHovered(true)
-    onPointerOver && onPointerOver(e)
+    if (onPointerOver) onPointerOver(e)
   }
 
-  const handlePointerOut = (e: any) => {
+  const handlePointerOut = (e: ThreeEvent<MouseEvent>) => {
     hoverTimeout.current = setTimeout(() => {
       setHovered(false)
-      onPointerOut && onPointerOut(e)
+      if (onPointerOut) onPointerOut(e)
     }, 60)
   }
 
@@ -137,38 +144,46 @@ export function Product({
       initial="hidden"
       animate={mode}
       variants={variants}
-      onPointerDown={(e: any) => {
+      onPointerDown={(e: ThreeEvent<MouseEvent>) => {
         if (isInteractingWithBackground) return
         e.stopPropagation()
         clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
       }}
-      onPointerUp={(e: any) => {
+      onPointerUp={(e: ThreeEvent<MouseEvent>) => {
         if (isInteractingWithBackground) return
         e.stopPropagation()
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y
         const dist = Math.sqrt(dx * dx + dy * dy)
-        
+
         if (dist < 10) {
-           onClick(e)
-           trigger('From canvas') 
+          onClick(e)
+          trigger('From canvas')
         }
       }}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
-      onUpdate={(latest: any) => {
+      onUpdate={(latest: { opacity?: number | string }) => {
         if (typeof latest.opacity === 'number') {
           opacity.set(latest.opacity)
         }
       }}
     >
       <motion.group
-        animate={{ scale: (mode === 'grid' && hovered) ? 1.05 : 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        animate={{ scale: mode === 'grid' && hovered ? 1.05 : 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <Bvh firstHitOnly>
-           <ProductModel url={url} opacityValue={opacity} />
-           <Hotspots type={type} active={isFocused} controlsRef={controlsRef} />
+          {/* Revert: Remove withGlints={true} as user reported they shouldn't be here.
+              Only pass glintsVisible if we ever enable them.
+              For now, ProductModel defaults withGlints to undefined (falsy). */}
+          <ProductModel url={url} opacityValue={opacity} />
+          <Hotspots
+            type={type}
+            active={isFocused}
+            controlsRef={controlsRef}
+            visible={!isRotating}
+          />
         </Bvh>
       </motion.group>
     </motion.group>

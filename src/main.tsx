@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import './webflow/boot' // Import the Webflow boot script
+import { preloadSceneModels } from './utils/preloadSceneModels'
+
+// Preload models immediately
+preloadSceneModels('/model-1.glb', '/model-2.glb')
 
 // If #root exists (Dev mode), mount the default App
 const rootEl = document.getElementById('root')

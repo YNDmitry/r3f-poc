@@ -2,7 +2,7 @@ import { CanvasTexture } from 'three'
 
 export function createStarTexture() {
   if (typeof document === 'undefined') {
-    return new CanvasTexture(new OffscreenCanvas(64, 64) as any)
+    return new CanvasTexture(new OffscreenCanvas(64, 64) as unknown as HTMLCanvasElement)
   }
   const canvas = document.createElement('canvas')
   canvas.width = 256

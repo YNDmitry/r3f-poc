@@ -41,6 +41,22 @@ export const ARCADE_CONSTANTS = {
     rotRange: 0.8,
     swapDuration: 1.2, // Kept smoother duration as requested
   },
+  glints: {
+    modelA: [
+      [0.2, 1.68, -0.1], // Right Speaker
+      [-0.2, 1.68, -0.1], // Left Speaker
+      [0.22, 0.91, 0.16], // LED Button
+      [0.01, 0.94, 0.16], // Joystick
+      [0.19, 0.72, 0.2], // Scanner area
+    ] as [number, number, number][],
+    modelB: [
+      [0.15, 0.91, 0.18], // LED Button
+      [-0.15, 0.91, 0.18], // LED Button Left
+      [0.1, 1.05, 0.1], // Bill Validator
+      [0, 1.5, 0.15], // Screen Top
+      [0.2, 1.78, 0.15], // Speaker
+    ] as [number, number, number][],
+  },
 } as const
 
 export type ArcadeState = 'front' | 'back'

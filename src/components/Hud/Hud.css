@@ -1,7 +1,7 @@
 /* The Leader Line (SVG) */
 .hud-leader {
-  width: 8rem; 
-  height: 2rem; 
+  width: 15rem;
+  height: 2rem;
   overflow: visible;
   flex-shrink: 0;
   z-index: 1;
@@ -15,19 +15,9 @@
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
   /* Drawing Animation setup */
-  stroke-dasharray: 300; 
+  stroke-dasharray: 300;
   stroke-dashoffset: 300;
   animation: drawLeader 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
-}
-
-/* The Anchor Dot */
-.hud-leader circle {
-  fill: white;
-  opacity: 0;
-  transform-origin: 12.5rem 0rem; 
-  animation:
-    fadeInDot 0.2s ease-out forwards,
-    pulseDot 2s infinite ease-in-out;
 }
 
 @keyframes drawLeader {
@@ -36,42 +26,24 @@
   }
 }
 
-@keyframes fadeInDot {
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulseDot {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 2px white);
-  }
-  50% {
-    transform: scale(1.5);
-    filter: drop-shadow(0 0 8px white);
-  }
-}
-
 /* The Content Box using Border Image */
 .hud-box {
   /* The Border Image Magic */
   /* Increased border width to support thicker visual borders from the SVG slice */
-  border: 1.1rem solid transparent; 
-  
+  border: 1.1rem solid transparent;
+
   /* SVG (Wireframe only - No Fill) */
   border-image-source: url('../../assets/ui/hud-frame.svg');
-  border-image-slice: 20; 
-  
+  border-image-slice: 20;
+
   /* Increased width to zoom in on the SVG slice, making lines thicker */
-  border-image-width: 1.3rem; 
+  border-image-width: 1.3rem;
   border-image-repeat: stretch;
 
   /* Text Styles */
   color: white;
-  font-family: 'Space Mono', monospace, sans-serif;
-  font-size: 9px;
+  font-family: 'Typodermic joystixmonospace', sans-serif;
+  font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -79,7 +51,7 @@
   min-width: 7rem; /* slightly adjusted */
   text-align: center;
   white-space: nowrap;
-  overflow: hidden; 
+  overflow: hidden;
 
   /* Less padding needed since border is transparent inside */
   padding: 0 0.2rem;
@@ -144,4 +116,43 @@
 
 .jenka-tech-hud.is-mirrored {
   animation: hudFadeInMirrored 0.3s ease-out forwards;
+}
+
+/* --- SWIPE HINT --- */
+
+@keyframes hint-pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+@keyframes hand-swipe {
+  0% {
+    transform: translateX(10px);
+  }
+  50% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(10px);
+  }
+}
+
+.swipe-hint-container {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 0.5s ease-out;
 }
