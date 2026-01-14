@@ -33,7 +33,7 @@ jobs:
       - name: Install & Build
         run: |
           bun install
-          bun run build:lib
+          bun run build
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
