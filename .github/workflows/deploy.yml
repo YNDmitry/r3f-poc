@@ -42,15 +42,15 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           files: |
-            dist/lib/jenka-3d.js
-            dist/lib/jenka-3d.css
+            dist/r3f-poc.js
+            dist/r3f-poc.css
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Rolling CDN
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/lib
+          publish_dir: ./dist
           publish_branch: release
           force_orphan: true
 
@@ -58,5 +58,5 @@ jobs:
         uses: egad13/purge-jsdelivr-cache@v1
         with:
           url: |
-            https://cdn.jsdelivr.net/gh/yndmitry/r3f-poc@release/jenka-3d.js
-            https://purge.jsdelivr.net/gh/yndmitry/r3f-poc@release/jenka-3d.css
+            https://cdn.jsdelivr.net/gh/yndmitry/r3f-poc@release/r3f-poc.js
+            https://cdn.jsdelivr.net/gh/yndmitry/r3f-poc@release/r3f-poc.css
