@@ -69,8 +69,21 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
 
   const isArcade = config.scene === 'arcade' || config.scene === 'hero-duo'
 
+  const containerClasses = [
+    'r3f-canvas-container',
+    `mode-${mode}`,
+    `is-${device}`,
+    isTouch ? 'is-touch' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div
+      ref={containerRef}
+      className={containerClasses}
+      style={{ width: '100%', height: '100%', position: 'relative' }}
+    >
       {(import.meta.env.DEV || debug) && <Stats />}
 
       {config.poster && (
@@ -92,10 +105,6 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
       )}
 
       <Canvas
-        style={{
-          pointerEvents: (device !== 'desktop' || isTouch) && mode === 'grid' ? 'none' : 'auto',
-          touchAction: 'pan-y',
-        }}
         frameloop={inView ? 'always' : 'never'}
         dpr={dpr}
         gl={{
