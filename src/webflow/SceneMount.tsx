@@ -15,7 +15,7 @@ export interface WebflowSceneConfig {
 export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [inView, setInView] = useState(false)
-  const [dpr, setDpr] = useState(1.5)
+  const [dpr, setDpr] = useState(2)
   const [debug, setDebug] = useState(false)
 
   // Preload models immediately when config is available
@@ -74,7 +74,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
         dpr={dpr}
         gl={{
           powerPreference: 'high-performance',
-          antialias: false,
+          antialias: true,
           stencil: false,
           alpha: true,
         }}
@@ -82,7 +82,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
           gl.setClearColor(0x000000, 0)
         }}
       >
-        <PerformanceMonitor onIncline={() => setDpr(1.5)} onDecline={() => setDpr(1)} />
+        <PerformanceMonitor onIncline={() => setDpr(2)} onDecline={() => setDpr(1.5)} />
 
         {isArcade ? (
           <ArcadeScene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />

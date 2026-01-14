@@ -12,7 +12,7 @@ function App() {
     scene: { options: ['Default', 'Arcade'], value: 'Default' },
     stats: false,
   })
-  const [dpr, setDpr] = useState(1.5)
+  const [dpr, setDpr] = useState(2)
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#111' }}>
@@ -23,12 +23,12 @@ function App() {
         dpr={dpr}
         gl={{
           powerPreference: 'high-performance',
-          antialias: false,
+          antialias: true,
           stencil: false,
           alpha: true,
         }}
       >
-        <PerformanceMonitor onIncline={() => setDpr(2)} onDecline={() => setDpr(1)} />
+        <PerformanceMonitor onIncline={() => setDpr(2)} onDecline={() => setDpr(1.5)} />
         {scene === 'Default' ? <Scene /> : <ArcadeScene />}
       </Canvas>
     </div>
