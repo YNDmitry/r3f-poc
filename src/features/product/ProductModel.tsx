@@ -25,7 +25,6 @@ export function ProductModel({
 
   useEffect(() => {
     const mats: THREE.Material[] = []
-    let cachedGreyMat: THREE.Material | null = null
 
     // First pass: Find source material for hacks (Cube_01005)
     let sourceMat: THREE.Material | null = null
