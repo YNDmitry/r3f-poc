@@ -50,20 +50,14 @@ export function ProductModel({
         const matName = mat.name.toLowerCase()
         const meshName = mesh.name
 
-        // 2. Fix Plane001 (inherit from Cube_01005)
-        if (meshName === 'Plane001' && sourceMat) {
-          if (!cachedGreyMat) {
-            cachedGreyMat = sourceMat.clone()
-            // @ts-ignore
-            if (cachedGreyMat.color) cachedGreyMat.color.multiplyScalar(0.5)
-            cachedGreyMat.transparent = true // Ensure clone is also transparent
-          }
-          mesh.material = cachedGreyMat
-          // We don't push to mats here because cachedGreyMat might be pushed multiple times or managed separately?
-          // Actually, we should push it to 'mats' so it fades too.
-          if (!mats.includes(mesh.material)) {
-            mats.push(mesh.material)
-          }
+        // 2. Fix Plane001 (Color override)
+        if (meshName === 'Plane001') {
+          const baseMat = sourceMat || (mesh.material as THREE.Material)
+          const newMat = baseMat.clone() as THREE.MeshStandardMaterial
+
+          newMat.color.set('#gray')
+
+          mesh.material = newMat
         }
 
         // --- SCREEN LOGIC ---
