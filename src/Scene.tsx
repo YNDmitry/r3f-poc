@@ -183,7 +183,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         ref={controlsRef}
         makeDefault
         enabled={mode !== 'grid'}
-        enableZoom={true}
+        enableZoom={false}
         enablePan={false}
         enableDamping={true}
         dampingFactor={0.05}
