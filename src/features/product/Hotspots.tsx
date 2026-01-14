@@ -35,15 +35,27 @@ function HotspotItem({
   const meshRef = useRef<THREE.Mesh>(null!)
 
   useFrame((state) => {
-    // Only animate pulsing if globally visible (logic kept for perf)
-    if (meshRef.current && !hovered) {
+    if (!meshRef.current) return
+
+    // 1. Determine target opacity/scale based on state
+    // We want a smooth transition for 'globalVisible'
+    const targetState = globalVisible ? 1 : 0
+    const currentOpacity = (meshRef.current.material as THREE.MeshBasicMaterial).opacity
+
+    // Simple lerp for visibility change
+    const newBaseOpacity = THREE.MathUtils.lerp(currentOpacity, targetState, 0.1)
+
+    if (globalVisible && !hovered) {
       const time = state.clock.elapsedTime
-      const scale = 1.0 + Math.sin(time * 3) * 0.15
-      meshRef.current.scale.set(scale, scale, 1)
+      const pulseScale = 1.0 + Math.sin(time * 3) * 0.15
+      meshRef.current.scale.set(pulseScale, pulseScale, 1)
       ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity =
-        0.8 + Math.sin(time * 2) * 0.2
-    } else if (meshRef.current && hovered) {
-      meshRef.current.scale.lerp(new THREE.Vector3(0, 0, 0), 0.2)
+        (0.8 + Math.sin(time * 2) * 0.2) * newBaseOpacity
+    } else if (hovered || !globalVisible) {
+      // Scale down and fade out
+      const targetScale = hovered ? 0 : 0
+      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, 0), 0.2)
+      ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = newBaseOpacity
     }
   })
 
@@ -71,6 +83,7 @@ function HotspotItem({
       <mesh
         onPointerOver={(e) => {
           if (!globalVisible) return
+          if (document.body.classList.contains('grabbing')) return
           e.stopPropagation()
           setHovered(true)
           onHover(item.id)

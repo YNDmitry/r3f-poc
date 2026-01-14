@@ -96,6 +96,9 @@ export function useCinematicCamera(
         animate(transition, 1, { duration: 1.5, ease: [0.22, 1, 0.36, 1] }) 
       }
     } else {
+      // Re-enable controls immediately when leaving hotspot
+      controls.enabled = true
+      
       if (stateRef.current.hasBaseState) {
          stateRef.current.endPos.copy(stateRef.current.basePos)
          stateRef.current.endTarget.copy(stateRef.current.baseTarget)
@@ -106,10 +109,7 @@ export function useCinematicCamera(
              duration: 1.2, 
              ease: [0.22, 1, 0.36, 1],
              onComplete: () => {
-                 if (!hoveredId) {
-                    controls.enabled = true
-                    stateRef.current.hasBaseState = false
-                 }
+                 stateRef.current.hasBaseState = false
              }
          })
       }

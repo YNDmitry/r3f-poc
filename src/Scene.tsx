@@ -144,16 +144,24 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
   })
 
   useEffect(() => {
-    document.body.style.cursor = 'pointer'
-  }, [mode])
+    // Set default cursor for the scene
+    const canvas = document.querySelector('canvas')
+    if (canvas) canvas.style.cursor = 'grab'
 
-  useEffect(() => {
-    if (isRotating) {
-      document.body.style.cursor = 'grabbing'
-    } else {
-      document.body.style.cursor = 'pointer'
+    // Inject styles dynamically to ensure they work even if CSS file isn't loaded
+    const style = document.createElement('style')
+    style.id = 'r3f-cursor-styles'
+    style.innerHTML = `
+      .grabbing, .grabbing * { cursor: grabbing !important; }
+      canvas:active { cursor: grabbing !important; }
+    `
+    document.head.appendChild(style)
+    
+    return () => {
+       if (canvas) canvas.style.cursor = 'auto'
+       if (document.head.contains(style)) document.head.removeChild(style)
     }
-  }, [isRotating])
+  }, [])
 
   return (
     <>
@@ -173,6 +181,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
 
       <OrbitControls
         ref={controlsRef}
+        makeDefault
         enabled={mode !== 'grid'}
         enableZoom={true}
         enablePan={false}
@@ -190,8 +199,18 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
               : layout.cameraZ.mobile
         }
         minDistance={2}
-        onStart={() => setIsRotating(true)}
-        onEnd={() => setIsRotating(false)}
+        onStart={() => {
+          setIsRotating(true)
+          document.body.classList.add('grabbing')
+          const canvas = document.querySelector('canvas')
+          if (canvas) canvas.style.cursor = 'grabbing'
+        }}
+        onEnd={() => {
+          setIsRotating(false)
+          document.body.classList.remove('grabbing')
+          const canvas = document.querySelector('canvas')
+          if (canvas) canvas.style.cursor = 'grab'
+        }}
       />
 
       <Environment preset="city" blur={1.0} background={false} resolution={256} />

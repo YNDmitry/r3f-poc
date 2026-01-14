@@ -33,6 +33,7 @@ export default defineConfig({
       },
     },
     cssCodeSplit: false, // Весь CSS в один файл
+    assetsInlineLimit: 4096, // Inline assets smaller than 4KB
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),

@@ -102,16 +102,20 @@ export function Glints({ positions = [], visible = true }: { positions?: [number
 function GlintItem({ position, texture, geometry, visible }: { position: [number, number, number], texture: THREE.Texture, geometry: THREE.PlaneGeometry, visible: boolean }) {
     const meshRef = useRef<THREE.Mesh>(null!)
     const offset = useMemo(() => Math.random() * 100, [])
+    const visibleFactor = useRef(1)
 
     useFrame((state) => {
         if (!meshRef.current) return
         const time = state.clock.elapsedTime
+        
+        // Smoothly transition visibility factor
+        visibleFactor.current = THREE.MathUtils.lerp(visibleFactor.current, visible ? 1 : 0, 0.1)
+
         const t = Math.sin((time + offset) * 3)
         const opacity = (t + 1) / 2
-        let sparkle = Math.pow(opacity, 10)
+        let sparkle = Math.pow(opacity, 10) * visibleFactor.current
 
-        if (!visible) {
-            sparkle = 0
+        if (visibleFactor.current < 0.01) {
             meshRef.current.visible = false
         } else {
             meshRef.current.visible = true

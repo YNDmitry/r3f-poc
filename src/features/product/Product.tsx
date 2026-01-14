@@ -119,6 +119,9 @@ export function Product({
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (mode !== 'grid') return
+    // Prevent pointer cursor if we are currently rotating (grabbing)
+    if (document.body.classList.contains('grabbing')) return
+    
     if (hoverTimeout.current) {
       clearTimeout(hoverTimeout.current)
       hoverTimeout.current = null
@@ -174,9 +177,6 @@ export function Product({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <Bvh firstHitOnly>
-          {/* Revert: Remove withGlints={true} as user reported they shouldn't be here.
-              Only pass glintsVisible if we ever enable them.
-              For now, ProductModel defaults withGlints to undefined (falsy). */}
           <ProductModel url={url} opacityValue={opacity} />
           <Hotspots
             type={type}
