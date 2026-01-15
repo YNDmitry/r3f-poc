@@ -37,10 +37,9 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
     mass: 1.2
   })
 
-  // IMPORTANT: Wake up the engine and start the spring animation
   useEffect(() => {
     progress.set(isFront ? 1 : 0)
-    invalidate() // Force first frame to start useFrame loop
+    invalidate()
   }, [isFront, progress, invalidate])
 
   const posX = useTransform(progress, [0, 0.5, 1], [backCfg.pos[0], -0.7, frontCfg.pos[0]])
@@ -55,7 +54,7 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
   const rotX = useTransform(progress, [0, 1], [backCfg.rot[0], frontCfg.rot[0]])
   const rotY = useTransform(progress, [0, 1], [backCfg.rot[1], frontCfg.rot[1]])
   const rotZ = useTransform(progress, [0, 1], [backCfg.rot[2], frontCfg.rot[2]])
-  const scaleValue = useTransform(progress, [0, 1], [backCfg.scale, frontCfg.scale])
+  const scaleValue = useTransform(progress, [0, 1], [backCfg.scale as number, frontCfg.scale as number])
 
   const tiltZ = useTransform(
     progress,
@@ -75,13 +74,12 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
     }
 
     const velocity = progress.getVelocity()
-    const isMoving = Math.abs(velocity) > 0.001 // Lower threshold for better sensitivity
+    const isMoving = Math.abs(velocity) > 0.001
     
     if (isMoving !== isAnimating) {
         setIsAnimating(isMoving)
     }
 
-    // Keep invalidating as long as the spring is moving or mouse is active
     if (isMoving || Math.abs(targetX - mouse.current.x) > 0.001) {
       invalidate()
     }
@@ -95,7 +93,7 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
       rotation-x={rotX}
       rotation-y={rotY}
       rotation-z={rotZ}
-      scale={scaleValue}
+      scale={scaleValue as any}
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         if (isAnimating) return

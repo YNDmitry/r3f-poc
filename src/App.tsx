@@ -32,15 +32,14 @@ function AppContent() {
         }}
       >
         <PerformanceMonitor 
-          bounds={[60, 120]}
+          bounds={() => [60, 120]}
           onChange={({ factor }) => {
-            // Adaptive range: 1.0 to 2.0 (standard premium range)
             const targetDpr = 1 + (Math.min(2, window.devicePixelRatio) - 1) * factor
             setDpr(targetDpr)
             invalidate()
           }} 
         />
-        <AdaptiveDpr /> {/* Removed pixelated prop */}
+        <AdaptiveDpr />
         <AdaptiveEvents />
         {scene === 'Default' ? <Scene /> : <ArcadeScene />}
       </Canvas>

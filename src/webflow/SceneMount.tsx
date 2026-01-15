@@ -23,9 +23,9 @@ function SceneInner({ config, setDpr, isArcade }: {
   return (
     <>
       <PerformanceMonitor 
-        bounds={[60, 120]}
+        bounds={() => [60, 120]}
         onChange={({ factor }) => {
-          const targetDpr = 1 + (Math.min(2, window.devicePixelRatio) - 1) * factor
+          const targetDpr = 1 + (Math.min(1.75, window.devicePixelRatio) - 1) * factor
           setDpr(targetDpr)
           invalidate()
         }} 
