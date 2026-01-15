@@ -14,20 +14,24 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
   const { invalidate } = useThree()
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const texture = useMemo(() => createStarTexture(), [])
-
+  
   const offsets = useMemo(() => positions.map(() => Math.random() * 100), [positions])
-
   const visibleFactor = useRef(1)
 
   useFrame((state) => {
     if (!meshRef.current || positions.length === 0) return
-
+    
     const time = state.clock.elapsedTime
-
-    visibleFactor.current = THREE.MathUtils.lerp(visibleFactor.current, visible ? 1 : 0, 0.1)
+    const targetFactor = visible ? 1 : 0
+    const isTransitioning = Math.abs(visibleFactor.current - targetFactor) > 0.001
+    
+    visibleFactor.current = THREE.MathUtils.lerp(visibleFactor.current, targetFactor, 0.1)
 
     if (visibleFactor.current < 0.001) {
-      meshRef.current.visible = false
+      if (meshRef.current.visible) {
+        meshRef.current.visible = false
+        invalidate()
+      }
       return
     }
 
@@ -42,12 +46,17 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
       tempObject.scale.setScalar(sparkle)
       tempObject.lookAt(state.camera.position)
       tempObject.updateMatrix()
-
+      
       meshRef.current.setMatrixAt(i, tempObject.matrix)
     })
 
     meshRef.current.instanceMatrix.needsUpdate = true
-    invalidate()
+    
+    // Only invalidate if we are fading in/out or if someone is moving the camera
+    // This allows the scene to sleep when static
+    if (isTransitioning) {
+        invalidate()
+    }
   })
 
   return (

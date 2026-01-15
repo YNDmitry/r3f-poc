@@ -19,7 +19,6 @@ interface HotspotsProps {
 
 const vTargetScale = new THREE.Vector3()
 
-// Individual Hotspot Component for better control
 function HotspotItem({
   item,
   texture,
@@ -42,6 +41,7 @@ function HotspotItem({
 
     const targetState = globalVisible ? 1 : 0
     const currentOpacity = (meshRef.current.material as THREE.MeshBasicMaterial).opacity
+    const isTransitioning = Math.abs(currentOpacity - targetState) > 0.001 || hovered
 
     const newBaseOpacity = THREE.MathUtils.lerp(currentOpacity, targetState, 0.1)
 
@@ -57,19 +57,18 @@ function HotspotItem({
       meshRef.current.scale.lerp(vTargetScale, 0.2)
       ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = newBaseOpacity
     }
-    invalidate()
+
+    // Only render if we are interacting or transitioning
+    if (isTransitioning) {
+        invalidate()
+    }
   })
 
   return (
     <group position={item.position as [number, number, number]}>
-      {/* Visual Star (Billboard makes it always face camera) */}
       <Billboard>
         <mesh ref={meshRef}>
           <planeGeometry args={[0.15, 0.15]} />
-          {/* Transparent must be true for parent opacity fade to work on children materials if we used a custom shader,
-              but standard materials might not inherit group opacity automatically in R3F without traverse.
-              However, motion.group usually handles prop drilling or matrix scaling.
-              Let's see. If opacity doesn't propagate, scaling will still look like a "pop out". */}
           <meshBasicMaterial
             map={texture}
             transparent
@@ -80,7 +79,6 @@ function HotspotItem({
         </mesh>
       </Billboard>
 
-      {/* Invisible Hitbox */}
       <mesh
         onPointerOver={(e) => {
           if (!globalVisible) return
@@ -159,19 +157,16 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
       animate={visible ? 'visible' : 'hidden'}
       variants={variants}
       onUpdate={() => invalidate()}
-      // Disable pointer events when hidden to prevent clicking invisible hotspots
-      visible={true} // Keep Three.js object visible for animation to play out
+      visible={true}
     >
       {items.map((item) => (
         <HotspotItem
           key={item.id}
           item={item}
           texture={starTexture}
-          // We pass globalVisible logic via props to disable interactions,
-          // but visual hiding is now handled by the parent motion.group
           globalVisible={visible}
           onHover={(id) => {
-            if (!visible) return // Double check
+            if (!visible) return
             if (leaveTimer.current) {
               clearTimeout(leaveTimer.current)
               leaveTimer.current = null
