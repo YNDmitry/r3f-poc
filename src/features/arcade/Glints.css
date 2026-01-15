@@ -1,0 +1,30 @@
+.glint-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0);
+  animation: glint-blink var(--glint-duration) ease-in-out var(--glint-delay) infinite;
+  pointer-events: none;
+}
+
+.glint-svg {
+  width: 100%;
+  height: 100%;
+  transform: scale(var(--glint-scale));
+  /* High visibility filters */
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 1)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+}
+
+@keyframes glint-blink {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  40%, 60% {
+    opacity: 1;
+    transform: scale(1) rotate(90deg);
+  }
+}

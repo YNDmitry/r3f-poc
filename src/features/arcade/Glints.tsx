@@ -1,80 +1,55 @@
-import { useMemo, useRef } from 'react'
-import * as THREE from 'three'
-import { useFrame, useThree } from '@react-three/fiber'
-import { createStarTexture } from '../../utils/createStarTexture'
+import { useMemo } from 'react'
+import { Html } from '@react-three/drei'
+import './Glints.css'
 
 interface GlintsProps {
   positions?: [number, number, number][]
   visible?: boolean
 }
 
-const tempObject = new THREE.Object3D()
-
 export function Glints({ positions = [], visible = true }: GlintsProps) {
-  const { invalidate } = useThree()
-  const meshRef = useRef<THREE.InstancedMesh>(null!)
-  const texture = useMemo(() => createStarTexture(), [])
-  
-  const offsets = useMemo(() => positions.map(() => Math.random() * 100), [positions])
-  const visibleFactor = useRef(1)
+  const glints = useMemo(() => {
+    return positions.map((pos, i) => ({
+      id: i,
+      pos,
+      delay: Math.random() * 2,
+      duration: 1.5 + Math.random() * 1.5,
+      scale: 0.5 + Math.random() * 0.5
+    }))
+  }, [positions])
 
-  useFrame((state) => {
-    if (!meshRef.current || positions.length === 0) return
-    
-    const time = state.clock.elapsedTime
-    const targetFactor = visible ? 1 : 0
-    const isTransitioning = Math.abs(visibleFactor.current - targetFactor) > 0.001
-    
-    visibleFactor.current = THREE.MathUtils.lerp(visibleFactor.current, targetFactor, 0.1)
-
-    if (visibleFactor.current < 0.001) {
-      if (meshRef.current.visible) {
-        meshRef.current.visible = false
-        invalidate()
-      }
-      return
-    }
-
-    meshRef.current.visible = true
-
-    positions.forEach((pos, i) => {
-      const offset = offsets[i]
-      const t = Math.sin((time + offset) * 3)
-      const sparkle = Math.pow((t + 1) / 2, 10) * visibleFactor.current
-
-      tempObject.position.set(pos[0], pos[1], pos[2])
-      tempObject.scale.setScalar(sparkle)
-      tempObject.lookAt(state.camera.position)
-      tempObject.updateMatrix()
-      
-      meshRef.current.setMatrixAt(i, tempObject.matrix)
-    })
-
-    meshRef.current.instanceMatrix.needsUpdate = true
-    
-    // Only invalidate if we are fading in/out or if someone is moving the camera
-    // This allows the scene to sleep when static
-    if (isTransitioning) {
-        invalidate()
-    }
-  })
+  if (!visible) return null
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, positions.length]}
-      frustumCulled={false}
-    >
-      <planeGeometry args={[0.15, 0.15]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        depthWrite={false}
-        depthTest={false}
-        blending={THREE.AdditiveBlending}
-        color="white"
-        side={THREE.DoubleSide}
-      />
-    </instancedMesh>
+    <group>
+      {glints.map((glint) => (
+        <Html
+          key={glint.id}
+          position={glint.pos}
+          center
+          distanceFactor={1.2}
+          pointerEvents="none"
+          // Removed occlusion for now to ensure visibility
+          // We can add it back later if everything works
+          zIndexRange={[0, 0]}
+        >
+          <div 
+            className="glint-container"
+            style={{
+              '--glint-delay': `${glint.delay}s`,
+              '--glint-duration': `${glint.duration}s`,
+              '--glint-scale': glint.scale,
+            } as any}
+          >
+            <svg viewBox="0 0 100 100" className="glint-svg">
+              <path 
+                d="M50 0 L55 45 L100 50 L55 55 L50 100 L45 55 L0 50 L45 45 Z" 
+                fill="white"
+              />
+            </svg>
+          </div>
+        </Html>
+      ))}
+    </group>
   )
 }
