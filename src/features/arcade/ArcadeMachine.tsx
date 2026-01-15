@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion-3d'
 import { useSpring, useTransform } from 'framer-motion'
 import { ARCADE_CONSTANTS } from '../../config/arcade-config'
@@ -31,36 +31,22 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
 
   const isFront = state === 'front'
 
-  // Sped up: Increased stiffness (from 40 to 65) and adjusted damping for snappiness
   const progress = useSpring(isFront ? 1 : 0, {
     stiffness: 65,
     damping: 26,
     mass: 1.2
   })
 
-  const posX = useTransform(
-    progress,
-    [0, 0.5, 1],
-    [backCfg.pos[0], -0.7, frontCfg.pos[0]]
-  )
+  // IMPORTANT: Wake up the engine and start the spring animation
+  useEffect(() => {
+    progress.set(isFront ? 1 : 0)
+    invalidate() // Force first frame to start useFrame loop
+  }, [isFront, progress, invalidate])
 
-  const posZ = useTransform(
-    progress,
-    [0, 0.5, 1],
-    [backCfg.pos[2], 0.2, frontCfg.pos[2]]
-  )
-
-  const altPosX = useTransform(
-    progress,
-    [0, 0.5, 1],
-    [backCfg.pos[0], 0.7, frontCfg.pos[0]]
-  )
-
-  const altPosZ = useTransform(
-    progress,
-    [0, 0.5, 1],
-    [backCfg.pos[2], -0.6, frontCfg.pos[2]]
-  )
+  const posX = useTransform(progress, [0, 0.5, 1], [backCfg.pos[0], -0.7, frontCfg.pos[0]])
+  const posZ = useTransform(progress, [0, 0.5, 1], [backCfg.pos[2], 0.2, frontCfg.pos[2]])
+  const altPosX = useTransform(progress, [0, 0.5, 1], [backCfg.pos[0], 0.7, frontCfg.pos[0]])
+  const altPosZ = useTransform(progress, [0, 0.5, 1], [backCfg.pos[2], -0.6, frontCfg.pos[2]])
 
   const finalPosX = isFront ? posX : altPosX
   const finalPosZ = isFront ? posZ : altPosZ
@@ -78,12 +64,6 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
   )
 
   useFrame((state) => {
-    const target = isFront ? 1 : 0
-    if (progress.get() !== target) {
-      progress.set(target)
-      invalidate()
-    }
-
     const targetX = state.pointer.x
     const targetY = state.pointer.y
     mouse.current.x += (targetX - mouse.current.x) * 0.1
@@ -95,12 +75,13 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
     }
 
     const velocity = progress.getVelocity()
-    const isMoving = Math.abs(velocity) > 0.005
+    const isMoving = Math.abs(velocity) > 0.001 // Lower threshold for better sensitivity
     
     if (isMoving !== isAnimating) {
         setIsAnimating(isMoving)
     }
 
+    // Keep invalidating as long as the spring is moving or mouse is active
     if (isMoving || Math.abs(targetX - mouse.current.x) > 0.001) {
       invalidate()
     }
