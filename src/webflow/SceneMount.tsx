@@ -13,27 +13,24 @@ export interface WebflowSceneConfig {
   poster: string | null
 }
 
-function SceneInner({
-  config,
-  setDpr,
-  isArcade,
-}: {
-  config: WebflowSceneConfig
-  setDpr: (v: number) => void
+function SceneInner({ config, setDpr, isArcade }: { 
+  config: WebflowSceneConfig, 
+  setDpr: (v: number) => void,
   isArcade: boolean
 }) {
   const { invalidate } = useThree()
-
+  
   return (
     <>
-      <PerformanceMonitor
+      <PerformanceMonitor 
+        bounds={[60, 120]}
         onChange={({ factor }) => {
           const targetDpr = 1 + (Math.min(2, window.devicePixelRatio) - 1) * factor
           setDpr(targetDpr)
           invalidate()
-        }}
+        }} 
       />
-      <AdaptiveDpr pixelated />
+      <AdaptiveDpr />
       <AdaptiveEvents />
 
       {isArcade ? (
@@ -49,9 +46,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const device = useDevice()
   const [inView, setInView] = useState(false)
-  const [dpr, setDpr] = useState(
-    typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio) : 1
-  )
+  const [dpr, setDpr] = useState(typeof window !== 'undefined' ? window.devicePixelRatio : 1)
   const [debug, setDebug] = useState(false)
   const [mode, setMode] = useState<string>((window as any).jenkaLastMode || 'grid')
   const [isTouch, setIsTouch] = useState(false)
@@ -142,7 +137,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
         dpr={dpr}
         gl={{
           powerPreference: 'high-performance',
-          antialias: true,
+          antialias: false,
           stencil: false,
           alpha: true,
         }}
@@ -150,18 +145,22 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
           gl.setClearColor(0x000000, 0)
         }}
       >
-        <SceneInner config={config} setDpr={setDpr} isArcade={isArcade} />
+        <SceneInner 
+          config={config} 
+          setDpr={setDpr} 
+          isArcade={isArcade} 
+        />
       </Canvas>
-
+      
       {(isTouch || device !== 'desktop') && mode === 'grid' && (
-        <div
+        <div 
           className="scroll-shield"
           style={{
             position: 'absolute',
             inset: 0,
             zIndex: 50,
             touchAction: 'pan-y',
-          }}
+          }} 
         />
       )}
     </div>

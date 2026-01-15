@@ -13,7 +13,8 @@ function AppContent() {
     scene: { options: ['Default', 'Arcade'], value: 'Default' },
     stats: false,
   })
-  const [dpr, setDpr] = useState(Math.min(2, window.devicePixelRatio))
+  
+  const [dpr, setDpr] = useState(window.devicePixelRatio || 1)
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#111' }}>
@@ -25,19 +26,21 @@ function AppContent() {
         dpr={dpr}
         gl={{
           powerPreference: 'high-performance',
-          antialias: true,
+          antialias: false, 
           stencil: false,
           alpha: true,
         }}
       >
-        <PerformanceMonitor
+        <PerformanceMonitor 
+          bounds={[60, 120]}
           onChange={({ factor }) => {
+            // Adaptive range: 1.0 to 2.0 (standard premium range)
             const targetDpr = 1 + (Math.min(2, window.devicePixelRatio) - 1) * factor
             setDpr(targetDpr)
             invalidate()
-          }}
+          }} 
         />
-        <AdaptiveDpr pixelated />
+        <AdaptiveDpr /> {/* Removed pixelated prop */}
         <AdaptiveEvents />
         {scene === 'Default' ? <Scene /> : <ArcadeScene />}
       </Canvas>

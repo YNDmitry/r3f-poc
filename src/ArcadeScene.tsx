@@ -52,9 +52,9 @@ export function ArcadeScene({
         fov={ARCADE_CONSTANTS.layout.fov}
       />
 
-      <Environment preset="city" blur={1.0} background={false} resolution={512} />
+      {/* Reduced environment resolution for FPS boost */}
+      <Environment preset="city" blur={1.0} background={false} resolution={256} />
 
-      {/* Lighting Boosted */}
       <ambientLight intensity={0.8} />
       <directionalLight position={[3.5, 5.5, 6.5]} intensity={1.8} />
       <directionalLight position={[-6.5, 2.5, 4.0]} intensity={1.0} color="#bcd7ff" />

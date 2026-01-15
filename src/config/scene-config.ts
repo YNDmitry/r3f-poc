@@ -84,20 +84,20 @@ export const CONSTANTS = {
       { id: 'b8', label: 'Left Speaker', position: [-0.2, 1.78, 0.15], hudWidth: 5 },
     ],
   },
-  glints: {
-    a: [
-      [0.2, 1.68, -0.1],
-      [-0.2, 1.68, -0.1],
-      [0.22, 0.91, 0.16],
-      [0.01, 0.94, 0.16],
-    ] as [number, number, number][],
-    b: [
-      [0, 0.94, 0.18],
-      [0.15, 0.91, 0.18],
-      [-0.15, 0.91, 0.18],
-      [0, 1.5, 0.15],
-    ] as [number, number, number][],
-  },
+  // glints: {
+  //   a: [
+  //     [0.2, 1.68, -0.1],
+  //     [-0.2, 1.68, -0.1],
+  //     [0.22, 0.91, 0.16],
+  //     [0.01, 0.94, 0.16],
+  //   ] as [number, number, number][],
+  //   b: [
+  //     [0, 0.94, 0.18],
+  //     [0.15, 0.91, 0.18],
+  //     [-0.15, 0.91, 0.18],
+  //     [0, 1.5, 0.15],
+  //   ] as [number, number, number][],
+  // },
 } as const
 
 export type SceneMode = 'grid' | 'focus-a' | 'focus-b'
