@@ -64,24 +64,24 @@ export const CONSTANTS = {
   },
   customHotspots: {
     a: [
-      { id: 'a1', label: 'Right Speaker', position: [0.2, 1.68, -0.1] },
-      { id: 'a2', label: 'Left Speaker', position: [-0.2, 1.68, -0.1] },
-      { id: 'a3', label: 'FullHD touch display', position: [0, 1.4, -0.1] },
-      { id: 'a4', label: 'Bill validator', position: [-0, 0.55, 0.2] },
-      { id: 'a5', label: 'Scanner', position: [0.19, 0.72, 0.2] },
-      { id: 'a6', label: 'LED push button', position: [0.22, 0.91, 0.16] },
-      { id: 'a7', label: 'LED push button', position: [-0.22, 0.91, 0.16] },
-      { id: 'a8', label: 'Joystick', position: [0.01, 0.94, 0.16] },
+      { id: 'a1', label: 'Right Speaker', position: [0.2, 1.68, -0.1], hudWidth: 11 },
+      { id: 'a2', label: 'Left Speaker', position: [-0.2, 1.68, -0.1], hudWidth: 10 },
+      { id: 'a3', label: 'FullHD touch display', position: [0, 1.4, -0.1], hudWidth: 22 },
+      { id: 'a4', label: 'Bill validator', position: [-0, 0.55, 0.2], hudWidth: 22 },
+      { id: 'a5', label: 'Scanner', position: [0.19, 0.72, 0.2], hudWidth: 13 },
+      { id: 'a6', label: 'LED push button', position: [0.22, 0.91, 0.16], hudWidth: 10 },
+      { id: 'a7', label: 'LED push button', position: [-0.22, 0.91, 0.16], hudWidth: 10 },
+      { id: 'a8', label: 'Joystick', position: [0.01, 0.94, 0.16], hudWidth: 20 },
     ],
     b: [
-      { id: 'b1', label: 'Joystick', position: [0, 0.94, 0.18] },
-      { id: 'b2', label: 'LED push button', position: [0.15, 0.91, 0.18] },
-      { id: 'b3', label: 'LED push button', position: [-0.15, 0.91, 0.18] },
-      { id: 'b4', label: 'Bill validator', position: [0.1, 1.05, 0.1] },
-      { id: 'b5', label: 'Scanner', position: [0.2, 1.05, 0.1] },
-      { id: 'b6', label: 'FullHD touch display', position: [0, 1.5, 0.15] },
-      { id: 'b7', label: 'Right Speaker', position: [0.2, 1.78, 0.15] },
-      { id: 'b8', label: 'Left Speaker', position: [-0.2, 1.78, 0.15] },
+      { id: 'b1', label: 'Joystick', position: [0, 0.94, 0.18], hudWidth: 17 },
+      { id: 'b2', label: 'LED push button', position: [0.15, 0.91, 0.18], hudWidth: 7 },
+      { id: 'b3', label: 'LED push button', position: [-0.15, 0.91, 0.18], hudWidth: 7 },
+      { id: 'b4', label: 'Bill validator', position: [0.1, 1.05, 0.1], hudWidth: 10 },
+      { id: 'b5', label: 'Scanner', position: [0.2, 1.05, 0.1], hudWidth: 5 },
+      { id: 'b6', label: 'FullHD touch display', position: [0, 1.5, 0.15], hudWidth: 17 },
+      { id: 'b7', label: 'Right Speaker', position: [0.2, 1.78, 0.15], hudWidth: 5 },
+      { id: 'b8', label: 'Left Speaker', position: [-0.2, 1.78, 0.15], hudWidth: 5 },
     ],
   },
   glints: {
@@ -113,4 +113,5 @@ export interface HotspotItem {
   readonly id: string
   readonly label: string
   readonly position: readonly [number, number, number]
+  readonly hudWidth?: number | string
 }
