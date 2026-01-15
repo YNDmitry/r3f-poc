@@ -14,7 +14,7 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
       pos,
       delay: Math.random() * 2,
       duration: 1.5 + Math.random() * 1.5,
-      scale: 0.5 + Math.random() * 0.5
+      scale: 0.8 + Math.random() * 0.4
     }))
   }, [positions])
 
@@ -29,8 +29,6 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
           center
           distanceFactor={1.2}
           pointerEvents="none"
-          // Removed occlusion for now to ensure visibility
-          // We can add it back later if everything works
           zIndexRange={[0, 0]}
         >
           <div 
@@ -41,11 +39,31 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
               '--glint-scale': glint.scale,
             } as any}
           >
-            <svg viewBox="0 0 100 100" className="glint-svg">
-              <path 
-                d="M50 0 L55 45 L100 50 L55 55 L50 100 L45 55 L0 50 L45 45 Z" 
-                fill="white"
-              />
+            <svg viewBox="0 0 256 256" className="glint-svg">
+              <defs>
+                <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="white" stopOpacity="1" />
+                  <stop offset="20%" stopColor="white" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="white" stopOpacity="0" />
+                </radialGradient>
+                <radialGradient id="beamGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="white" stopOpacity="1" />
+                  <stop offset="10%" stopColor="white" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="white" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              
+              {/* Central Glow */}
+              <circle cx="128" cy="128" r="60" fill="url(#glowGradient)" />
+              
+              {/* Horizontal Beam */}
+              <ellipse cx="128" cy="128" rx="110" ry="3" fill="url(#beamGradient)" />
+              
+              {/* Vertical Beam */}
+              <ellipse cx="128" cy="128" rx="3" ry="110" fill="url(#beamGradient)" />
+              
+              {/* Bright Core */}
+              <circle cx="128" cy="128" r="4" fill="white" />
             </svg>
           </div>
         </Html>
