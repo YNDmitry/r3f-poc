@@ -1,7 +1,7 @@
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { type ThreeEvent, useThree } from '@react-three/fiber'
 import { type TransformData } from '../../config/scene-config'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion-3d'
 import { useMotionValue } from 'framer-motion'
 import { Bvh } from '@react-three/drei'
@@ -36,14 +36,10 @@ export function Product({
   const { invalidate } = useThree()
   const config = useSceneConfig()
   const { trigger } = useWebflow()
-  const device = useDevice() // 'desktop' | 'mobile'
+  const device = useDevice()
 
   const isA = type === 'a'
-
-  // Select config based on device
-  // Note: grid[type][device] is correct as per updated type assumption
-  const gridCfg = isA ? config.grid[type][device] : config.grid[type][device]
-
+  const gridCfg = config.grid[type][device]
   const focusTarget = config.focus[device].target
   const focusBg = config.focus[device].background
 
@@ -57,17 +53,8 @@ export function Product({
     scale: cfg.scale,
   })
 
-  // MOVEMENT Transition (Slow & Luxurious)
   const moveTransition = { duration: 1.4, ease: [0.16, 1, 0.3, 1] }
-
-  // OPACITY Transition (Fast & Snappy to hide artifacts)
   const fadeTransition = { delay: 1.0, duration: 0.15, ease: 'easeInOut' }
-
-  // Combined transition object
-  const combinedTransition = {
-    ...moveTransition,
-    opacity: fadeTransition,
-  }
 
   const variants = {
     hidden: {
@@ -82,45 +69,49 @@ export function Product({
       transition: {
         ...moveTransition,
         duration: 1.6,
-        // Add a small initial delay to let the first frame (shader compilation) pass
-        // before starting the heavy transform animation.
         delay: 0.1,
-        // Opacity fades in moderately fast on entry
-        opacity: { duration: 0.1, delay: 0.1 }, // Adjusted delay to sync
+        opacity: { duration: 0.1, delay: 0.1 },
       },
     },
     'focus-a': isA
       ? {
           ...getTransform(focusTarget),
           opacity: 1,
-          transition: combinedTransition,
+          transition: { ...moveTransition, opacity: fadeTransition },
         }
       : {
           ...getTransform(focusBg),
           opacity: 0,
-          transition: combinedTransition,
+          transition: { ...moveTransition, opacity: fadeTransition },
         },
     'focus-b': !isA
       ? {
           ...getTransform(focusTarget),
           opacity: 1,
-          transition: combinedTransition,
+          transition: { ...moveTransition, opacity: fadeTransition },
         }
       : {
           ...getTransform(focusBg),
           opacity: 0,
-          transition: combinedTransition,
+          transition: { ...moveTransition, opacity: fadeTransition },
         },
   }
 
   const opacity = useMotionValue(1)
   const [hovered, setHovered] = useState(false)
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  // Track if we are currently animating to control invalidation
+  const isAnimating = useRef(false)
+
+  // Wake up on mode change
+  useEffect(() => {
+    invalidate()
+  }, [mode, invalidate])
 
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (mode !== 'grid') return
-    // Prevent pointer cursor if we are currently rotating (grabbing)
     if (document.body.classList.contains('grabbing')) return
 
     if (hoverTimeout.current) {
@@ -129,18 +120,18 @@ export function Product({
     }
     setHovered(true)
     if (onPointerOver) onPointerOver(e)
+    invalidate() // Wake up for hover scale animation
   }
 
   const handlePointerOut = (e: ThreeEvent<MouseEvent>) => {
     hoverTimeout.current = setTimeout(() => {
       setHovered(false)
       if (onPointerOut) onPointerOut(e)
+      invalidate() // Wake up for hover scale return
     }, 60)
   }
 
-  const isInteractingWithBackground = (mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)
   const isFocused = (mode === 'focus-a' && isA) || (mode === 'focus-b' && !isA)
-
   const clickStart = useRef({ x: 0, y: 0 })
 
   return (
@@ -148,36 +139,42 @@ export function Product({
       initial="hidden"
       animate={mode}
       variants={variants}
+      onAnimationStart={() => { isAnimating.current = true }}
+      onAnimationComplete={() => { isAnimating.current = false }}
       onPointerDown={(e: ThreeEvent<MouseEvent>) => {
-        if (isInteractingWithBackground) return
+        if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
         e.stopPropagation()
         clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
       }}
       onPointerUp={(e: ThreeEvent<MouseEvent>) => {
-        if (isInteractingWithBackground) return
+        if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
         e.stopPropagation()
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-
-        if (dist < 10) {
+        if (Math.sqrt(dx * dx + dy * dy) < 10) {
           onClick(e)
           trigger('From canvas')
         }
       }}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
-      onUpdate={(latest: { opacity?: number | string }) => {
+      onUpdate={(latest: any) => {
         if (typeof latest.opacity === 'number') {
           opacity.set(latest.opacity)
         }
-        invalidate()
+        // Only invalidate if we are actually in the middle of a transition
+        if (isAnimating.current) {
+          invalidate()
+        }
       }}
     >
       <motion.group
         animate={{ scale: mode === 'grid' && hovered ? 1.05 : 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        onUpdate={() => invalidate()}
+        onUpdate={() => {
+          // Hover animation needs invalidation too, but only when hovered state is active
+          invalidate()
+        }}
       >
         <Bvh firstHitOnly>
           <ProductModel url={url} opacityValue={opacity} />

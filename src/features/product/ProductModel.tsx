@@ -44,8 +44,6 @@ export function ProductModel({
 
   useEffect(() => {
     const mats: THREE.Material[] = []
-
-    // First pass: Find source material for hacks (Cube_01005)
     let sourceMat: THREE.Material | null = null
     clonedScene.traverse((child: THREE.Object3D) => {
       const mesh = child as THREE.Mesh
@@ -57,30 +55,23 @@ export function ProductModel({
     clonedScene.traverse((child: THREE.Object3D) => {
       const mesh = child as THREE.Mesh
       if (mesh.isMesh && mesh.material) {
-        // Init: Set based on initial opacity (assumed 1.0 if not started)
-        // We start opaque to look good immediately.
         const material = mesh.material as THREE.Material
         material.transparent = false
         material.depthWrite = true
         mats.push(material)
 
-        const mat = material as THREE.MeshStandardMaterial // Assuming standard mostly, but base Material is enough for generic props
+        const mat = material as THREE.MeshStandardMaterial
         const matName = mat.name.toLowerCase()
         const meshName = mesh.name
 
-        // 2. Fix Plane001 (Color override)
         if (meshName === 'Plane001') {
           const baseMat = sourceMat || (mesh.material as THREE.Material)
           const newMat = baseMat.clone() as THREE.MeshStandardMaterial
-
           newMat.color.set('#gray')
-
           mesh.material = newMat
         }
 
-        // --- SCREEN LOGIC ---
         const isScreen = matName.includes('9_gms')
-
         if (isScreen) {
           // @ts-ignore
           if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = 0.9
@@ -88,7 +79,6 @@ export function ProductModel({
         } else if ((mat as any).emissiveMap) {
           // @ts-ignore
           if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = 0.9
-          // mat.toneMapped defaults to true for others, which is fine
         }
       }
     })
@@ -98,23 +88,19 @@ export function ProductModel({
   useEffect(() => {
     if (!opacityValue) return
     const unsubscribe = opacityValue.on('change', (latest: number) => {
-      // Logic:
-      // High opacity (> 0.99) -> Opaque (Best Visuals, SSAO works)
-      // Low opacity (< 0.99)  -> Transparent (Fading works)
       const needsTransparent = latest < 0.99
 
       materials.current.forEach((m) => {
-        // Only toggle if state changes (avoids constant setting)
         if (m.transparent !== needsTransparent) {
           m.transparent = needsTransparent
-          // When switching to transparent, ensure depthWrite is maintained for sorting
-          // When opaque, depthWrite is default true anyway.
           m.depthWrite = true
-          m.needsUpdate = true // Trigger recompile/update
+          m.needsUpdate = true
         }
         m.opacity = latest
       })
       clonedScene.visible = latest > 0.05
+      
+      // ONLY invalidate if actually changing. Framer motion sometimes sends micro-updates.
       invalidate()
     })
     return unsubscribe

@@ -21,8 +21,6 @@ interface SceneProps {
   config?: SceneConfiguration
 }
 
-// --- Components ---
-
 function Intro({
   controlsRef,
   cameraZ,
@@ -30,16 +28,17 @@ function Intro({
   controlsRef: React.RefObject<OrbitControlsImpl | null>
   cameraZ: number
 }) {
+  const isDone = useRef(false)
+
   useFrame((state, delta) => {
+    if (isDone.current) return
+
     const time = state.clock.elapsedTime
     if (time < 2.5) {
       const progress = Math.min(time / 2.0, 1)
       const ease = 1 - Math.pow(1 - progress, 3)
-
       const startZ = cameraZ + 5
       const startY = 2
-
-      // Use delta-aware lerp (simple approximation for small steps)
       const alpha = 1 - Math.exp(-5 * delta)
 
       state.camera.position.z = THREE.MathUtils.lerp(
@@ -58,6 +57,8 @@ function Intro({
         controlsRef.current.update()
       }
       state.invalidate()
+    } else {
+      isDone.current = true
     }
   })
 
@@ -97,7 +98,6 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera>(null!)
 
-  // Resolve responsive layout props
   const cameraZ = layout.cameraZ[device] || layout.cameraZ.desktop
   const stagePos = layout.stagePos[device] || layout.stagePos.desktop
 
@@ -110,28 +110,20 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       }
     }
     window.addEventListener('jenka-set-mode', handleSetMode)
-
-    // Check for initial state if triggered before mount
     const initialMode = (window as any).jenkaLastMode
     if (initialMode) setMode(initialMode)
-
     return () => window.removeEventListener('jenka-set-mode', handleSetMode)
   }, [])
 
-  // Camera Reset Logic (Grid Mode Force Fix)
   useEffect(() => {
     if (mode === 'grid' && controlsRef.current && cameraRef.current) {
       const controls = controlsRef.current
       const camera = cameraRef.current
-
-      controls.enabled = false // FORCE DISABLE
-
+      controls.enabled = false
       camera.fov = layout.baseFov
       camera.updateProjectionMatrix()
-
       camera.position.set(0, 0, cameraZ)
       camera.lookAt(0, 0, 0)
-
       controls.target.set(0, 0, 0)
       controls.update()
     }
@@ -148,18 +140,11 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
     }
   }, [mode])
 
-  useFrame(() => {
-    if (mode === 'grid' && controlsRef.current && controlsRef.current.enabled) {
-      controlsRef.current.enabled = false
-    }
-  })
+  // Removed redundant useFrame that was checking controls.enabled every frame
 
   useEffect(() => {
-    // Set default cursor for the scene
     const canvas = document.querySelector('canvas')
     if (canvas) canvas.style.cursor = 'grab'
-
-    // Inject styles dynamically to ensure they work even if CSS file isn't loaded
     const style = document.createElement('style')
     style.id = 'r3f-cursor-styles'
     style.innerHTML = `
@@ -167,7 +152,6 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       canvas:active { cursor: grabbing !important; }
     `
     document.head.appendChild(style)
-
     return () => {
       if (canvas) canvas.style.cursor = 'auto'
       if (document.head.contains(style)) document.head.removeChild(style)
@@ -225,9 +209,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       />
 
       <Environment preset="city" blur={1.0} background={false} resolution={256} />
-
       <Lights mode={mode} />
-
       <Backdrop onReset={() => setMode('grid')} />
 
       <group position={stagePos}>
@@ -260,7 +242,6 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
           <Preload all />
         </Suspense>
       </group>
-
       <Effects />
     </>
   )
