@@ -6,7 +6,7 @@ export function Effects() {
   return (
     <Suspense fallback={null}>
       <EffectComposer
-        multisampling={0}
+        multisampling={8}
         stencilBuffer={false}
         depthBuffer={true}
         frameBufferType={HalfFloatType}

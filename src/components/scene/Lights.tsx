@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion-3d'
+import { useThree } from '@react-three/fiber'
 import type { SceneMode } from '../../config/scene-config'
 
 interface LightsProps {
@@ -6,6 +7,7 @@ interface LightsProps {
 }
 
 export function Lights({ mode }: LightsProps) {
+  const { invalidate } = useThree()
   const keyLightVariants = {
     grid: { x: 3.5, y: 5.5, z: 6.5 },
     'focus-a': { x: -3.5, y: 5.5, z: 6.5 },
@@ -37,6 +39,7 @@ export function Lights({ mode }: LightsProps) {
         transition={transition}
         intensity={1}
         shadow-bias={-0.0001}
+        onUpdate={() => invalidate()}
       />
 
       {/* Fill Light (Cool blueish to contrast warm key) */}
@@ -46,6 +49,7 @@ export function Lights({ mode }: LightsProps) {
         transition={transition}
         intensity={0.3}
         color="#b0c7ff"
+        onUpdate={() => invalidate()}
       />
 
       {/* Rim Light (Strong back-light for silhouette) */}

@@ -1,5 +1,5 @@
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import { type ThreeEvent } from '@react-three/fiber'
+import { type ThreeEvent, useThree } from '@react-three/fiber'
 import { type TransformData } from '../../config/scene-config'
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion-3d'
@@ -33,6 +33,7 @@ export function Product({
   controlsRef,
   isRotating = false,
 }: ProductProps) {
+  const { invalidate } = useThree()
   const config = useSceneConfig()
   const { trigger } = useWebflow()
   const device = useDevice() // 'desktop' | 'mobile'
@@ -121,7 +122,7 @@ export function Product({
     if (mode !== 'grid') return
     // Prevent pointer cursor if we are currently rotating (grabbing)
     if (document.body.classList.contains('grabbing')) return
-    
+
     if (hoverTimeout.current) {
       clearTimeout(hoverTimeout.current)
       hoverTimeout.current = null
@@ -170,11 +171,13 @@ export function Product({
         if (typeof latest.opacity === 'number') {
           opacity.set(latest.opacity)
         }
+        invalidate()
       }}
     >
       <motion.group
         animate={{ scale: mode === 'grid' && hovered ? 1.05 : 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
+        onUpdate={() => invalidate()}
       >
         <Bvh firstHitOnly>
           <ProductModel url={url} opacityValue={opacity} />

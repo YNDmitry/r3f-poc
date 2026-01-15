@@ -1,6 +1,7 @@
 import { MotionValue } from 'framer-motion'
 import { useEffect, useMemo, useRef } from 'react'
 import { useGLTF, Bvh } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Glints } from '../arcade/Glints'
 
@@ -19,8 +20,13 @@ export function ProductModel({
   glintsVisible = true,
   glintPositions = [],
 }: ProductModelProps) {
+  const { invalidate } = useThree()
   const { scene } = useGLTF(url)
   const clonedScene = useMemo(() => scene.clone(true), [scene])
+
+  // Example for LOD: You could load a low-poly version here
+  // const lowRes = useGLTF(url.replace('.glb', '-low.glb'))
+
   const materials = useRef<THREE.Material[]>([])
 
   useEffect(() => {
@@ -96,9 +102,10 @@ export function ProductModel({
         m.opacity = latest
       })
       clonedScene.visible = latest > 0.05
+      invalidate()
     })
     return unsubscribe
-  }, [opacityValue, clonedScene])
+  }, [opacityValue, clonedScene, invalidate])
 
   return (
     <>

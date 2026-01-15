@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { Scene } from '../Scene'
 import { ArcadeScene } from '../ArcadeScene'
-import { PerformanceMonitor, Stats } from '@react-three/drei'
+import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei'
 import { preloadSceneModels } from '../utils/preloadSceneModels'
 import { useDevice } from '../hooks/useDevice'
 
@@ -13,11 +13,45 @@ export interface WebflowSceneConfig {
   poster: string | null
 }
 
+function SceneInner({
+  config,
+  setDpr,
+  isArcade,
+}: {
+  config: WebflowSceneConfig
+  setDpr: (v: number) => void
+  isArcade: boolean
+}) {
+  const { invalidate } = useThree()
+
+  return (
+    <>
+      <PerformanceMonitor
+        onChange={({ factor }) => {
+          const targetDpr = 1 + (Math.min(2, window.devicePixelRatio) - 1) * factor
+          setDpr(targetDpr)
+          invalidate()
+        }}
+      />
+      <AdaptiveDpr pixelated />
+      <AdaptiveEvents />
+
+      {isArcade ? (
+        <ArcadeScene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />
+      ) : (
+        <Scene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />
+      )}
+    </>
+  )
+}
+
 export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const device = useDevice()
   const [inView, setInView] = useState(false)
-  const [dpr, setDpr] = useState(2)
+  const [dpr, setDpr] = useState(
+    typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio) : 1
+  )
   const [debug, setDebug] = useState(false)
   const [mode, setMode] = useState<string>((window as any).jenkaLastMode || 'grid')
   const [isTouch, setIsTouch] = useState(false)
@@ -26,7 +60,6 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
     setIsTouch(window.matchMedia('(pointer: coarse)').matches)
   }, [])
 
-  // Listen for mode changes to handle pointer-events
   useEffect(() => {
     const handleSetMode = (event: Event) => {
       const customEvent = event as CustomEvent<{ mode: string }>
@@ -40,7 +73,6 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
     return () => window.removeEventListener('jenka-set-mode', handleSetMode)
   }, [])
 
-  // Preload models immediately when config is available
   useEffect(() => {
     if (config.modelA && config.modelB) {
       preloadSceneModels(config.modelA, config.modelB)
@@ -106,11 +138,11 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
 
       <Canvas
         className="r3f-canvas-element"
-        frameloop={inView ? 'always' : 'never'}
+        frameloop={inView ? 'demand' : 'never'}
         dpr={dpr}
         gl={{
           powerPreference: 'high-performance',
-          antialias: false,
+          antialias: true,
           stencil: false,
           alpha: true,
         }}
@@ -118,46 +150,18 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
           gl.setClearColor(0x000000, 0)
         }}
       >
-        <PerformanceMonitor onIncline={() => setDpr(2)} onDecline={() => setDpr(1.5)} />
-
-        {isArcade ? (
-          <ArcadeScene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />
-        ) : (
-          <Scene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />
-        )}
+        <SceneInner config={config} setDpr={setDpr} isArcade={isArcade} />
       </Canvas>
-      
-      {/* 
-        Scroll Overlay Shield:
-        An absolute transparent div that covers the canvas in grid mode on touch devices.
-        It captures no events itself (pointer-events: none is NOT set here, wait...)
-        Actually, if we want SCROLL, we want this div to NOT capture pointer events?
-        No, if we want native scroll, we want the events to pass through to the DOCUMENT.
-        But if the Canvas eats them (even with pointer-events: none?), we are in trouble.
-        
-        Wait, if pointer-events: none is on Canvas, clicks go to what's behind it.
-        Behind it is this container div. If this container div allows scroll, good.
-        
-        Let's try a different approach:
-        If we put a div ON TOP that is `pointer-events: auto` but has `touch-action: pan-y`,
-        browsers prioritize scrolling on it.
-      */}
+
       {(isTouch || device !== 'desktop') && mode === 'grid' && (
-        <div 
+        <div
           className="scroll-shield"
           style={{
             position: 'absolute',
             inset: 0,
             zIndex: 50,
-            touchAction: 'pan-y', // Allow vertical scroll
-            // We do NOT set pointer-events: none here. 
-            // We want this div to be the target of the touch.
-            // Since it's empty and transparent, and has pan-y, 
-            // the browser will scroll.
-            // Horizontal swipes might be dead though?
-            // If we want horizontal rotation, we can't have a full shield.
-            // But user asked to DISABLE events in grid mode.
-          }} 
+            touchAction: 'pan-y',
+          }}
         />
       )}
     </div>

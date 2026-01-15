@@ -2,7 +2,7 @@ import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useMemo, useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { Html, Billboard } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { createStarTexture } from '../../utils/createStarTexture'
 import { useSceneConfig } from '../../config/SceneContext'
 import type { ProductType, HotspotItem } from '../../config/scene-config'
@@ -31,6 +31,7 @@ function HotspotItem({
   onLeave: () => void
   globalVisible?: boolean
 }) {
+  const { invalidate } = useThree()
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null!)
 
@@ -57,6 +58,7 @@ function HotspotItem({
       meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, 0), 0.2)
       ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = newBaseOpacity
     }
+    invalidate()
   })
 
   return (
@@ -111,6 +113,7 @@ function HotspotItem({
 }
 
 export function Hotspots({ type, active, controlsRef, visible = true }: HotspotsProps) {
+  const { invalidate } = useThree()
   const config = useSceneConfig()
   const items = config.customHotspots[type]
 
@@ -156,6 +159,7 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
       initial="visible"
       animate={visible ? 'visible' : 'hidden'}
       variants={variants}
+      onUpdate={() => invalidate()}
       // Disable pointer events when hidden to prevent clicking invisible hotspots
       visible={true} // Keep Three.js object visible for animation to play out
     >

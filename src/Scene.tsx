@@ -1,11 +1,5 @@
 import { useRef, useEffect, useState, Suspense } from 'react'
-import {
-  PerspectiveCamera,
-  OrbitControls,
-  Environment,
-  Preload,
-  Html,
-} from '@react-three/drei'
+import { PerspectiveCamera, OrbitControls, Environment, Preload, Html } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
@@ -52,6 +46,7 @@ function Intro({
       if (controlsRef.current) {
         controlsRef.current.update()
       }
+      state.invalidate()
     }
   })
 
@@ -104,7 +99,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       }
     }
     window.addEventListener('jenka-set-mode', handleSetMode)
-    
+
     // Check for initial state if triggered before mount
     const initialMode = (window as any).jenkaLastMode
     if (initialMode) setMode(initialMode)
@@ -161,10 +156,10 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       canvas:active { cursor: grabbing !important; }
     `
     document.head.appendChild(style)
-    
+
     return () => {
-       if (canvas) canvas.style.cursor = 'auto'
-       if (document.head.contains(style)) document.head.removeChild(style)
+      if (canvas) canvas.style.cursor = 'auto'
+      if (document.head.contains(style)) document.head.removeChild(style)
     }
   }, [])
 

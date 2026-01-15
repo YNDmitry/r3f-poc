@@ -4,7 +4,7 @@ import { ARCADE_CONSTANTS } from '../../config/arcade-config'
 import { ProductModel } from '../product/ProductModel'
 import { useWebflow } from '../../hooks/useWebflow'
 import { useDevice } from '../../hooks/useDevice'
-import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 
 interface ArcadeMachineProps {
@@ -15,6 +15,7 @@ interface ArcadeMachineProps {
 }
 
 export function ArcadeMachine({ state, url, glintPositions = [], onClick }: ArcadeMachineProps) {
+  const { invalidate } = useThree()
   const { states } = ARCADE_CONSTANTS
   const { trigger } = useWebflow()
   const device = useDevice()
@@ -37,6 +38,13 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
     if (parallaxGroup.current) {
       parallaxGroup.current.rotation.x = -mouse.current.y * 0.05
       parallaxGroup.current.rotation.y = mouse.current.x * 0.05
+    }
+
+    if (
+      Math.abs(targetX - mouse.current.x) > 0.0001 ||
+      Math.abs(targetY - mouse.current.y) > 0.0001
+    ) {
+      invalidate()
     }
   })
 
@@ -91,6 +99,8 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
         setHovered(false)
         document.body.style.cursor = 'auto'
       }}
+      onPointerMove={() => invalidate()}
+      onUpdate={() => invalidate()}
     >
       <group ref={parallaxGroup}>
         <motion.group
@@ -99,6 +109,7 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
             scale: hovered && state === 'back' ? 1.025 : 1,
           }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
+          onUpdate={() => invalidate()}
         >
           {/* Hide glints while animating (swapping) */}
           <ProductModel
