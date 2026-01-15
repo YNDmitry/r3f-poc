@@ -24,8 +24,21 @@ export function ProductModel({
   const { scene } = useGLTF(url)
   const clonedScene = useMemo(() => scene.clone(true), [scene])
 
-  // Example for LOD: You could load a low-poly version here
-  // const lowRes = useGLTF(url.replace('.glb', '-low.glb'))
+  useEffect(() => {
+    return () => {
+      clonedScene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          ;(child as THREE.Mesh).geometry.dispose()
+          const material = (child as THREE.Mesh).material
+          if (Array.isArray(material)) {
+            material.forEach((m) => m.dispose())
+          } else {
+            material.dispose()
+          }
+        }
+      })
+    }
+  }, [clonedScene])
 
   const materials = useRef<THREE.Material[]>([])
 

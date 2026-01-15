@@ -17,6 +17,8 @@ interface HotspotsProps {
   visible?: boolean
 }
 
+const vTargetScale = new THREE.Vector3()
+
 // Individual Hotspot Component for better control
 function HotspotItem({
   item,
@@ -38,12 +40,9 @@ function HotspotItem({
   useFrame((state) => {
     if (!meshRef.current) return
 
-    // 1. Determine target opacity/scale based on state
-    // We want a smooth transition for 'globalVisible'
     const targetState = globalVisible ? 1 : 0
     const currentOpacity = (meshRef.current.material as THREE.MeshBasicMaterial).opacity
 
-    // Simple lerp for visibility change
     const newBaseOpacity = THREE.MathUtils.lerp(currentOpacity, targetState, 0.1)
 
     if (globalVisible && !hovered) {
@@ -53,9 +52,9 @@ function HotspotItem({
       ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity =
         (0.8 + Math.sin(time * 2) * 0.2) * newBaseOpacity
     } else if (hovered || !globalVisible) {
-      // Scale down and fade out
       const targetScale = hovered ? 0 : 0
-      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, 0), 0.2)
+      vTargetScale.set(targetScale, targetScale, 0)
+      meshRef.current.scale.lerp(vTargetScale, 0.2)
       ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = newBaseOpacity
     }
     invalidate()

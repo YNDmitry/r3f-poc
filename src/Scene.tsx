@@ -30,7 +30,7 @@ function Intro({
   controlsRef: React.RefObject<OrbitControlsImpl | null>
   cameraZ: number
 }) {
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const time = state.clock.elapsedTime
     if (time < 2.5) {
       const progress = Math.min(time / 2.0, 1)
@@ -39,8 +39,19 @@ function Intro({
       const startZ = cameraZ + 5
       const startY = 2
 
-      state.camera.position.z = THREE.MathUtils.lerp(startZ, cameraZ, ease)
-      state.camera.position.y = THREE.MathUtils.lerp(startY, 0, ease)
+      // Use delta-aware lerp (simple approximation for small steps)
+      const alpha = 1 - Math.exp(-5 * delta)
+
+      state.camera.position.z = THREE.MathUtils.lerp(
+        state.camera.position.z,
+        THREE.MathUtils.lerp(startZ, cameraZ, ease),
+        alpha
+      )
+      state.camera.position.y = THREE.MathUtils.lerp(
+        state.camera.position.y,
+        THREE.MathUtils.lerp(startY, 0, ease),
+        alpha
+      )
       state.camera.lookAt(0, 0, 0)
 
       if (controlsRef.current) {
