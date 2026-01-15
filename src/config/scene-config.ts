@@ -64,40 +64,26 @@ export const CONSTANTS = {
   },
   customHotspots: {
     a: [
-      { id: 'a1', label: 'Right Speaker', position: [0.2, 1.68, -0.1], hudWidth: 11 },
+      { id: 'a1', label: 'Right Speaker', position: [0.22, 1.68, -0.1], hudWidth: 11 },
       { id: 'a2', label: 'Left Speaker', position: [-0.2, 1.68, -0.1], hudWidth: 10 },
       { id: 'a3', label: 'FullHD touch display', position: [0, 1.4, -0.1], hudWidth: 22 },
-      { id: 'a4', label: 'Bill validator', position: [-0, 0.55, 0.2], hudWidth: 22 },
-      { id: 'a5', label: 'Scanner', position: [0.19, 0.72, 0.2], hudWidth: 13 },
-      { id: 'a6', label: 'LED push button', position: [0.22, 0.91, 0.16], hudWidth: 10 },
-      { id: 'a7', label: 'LED push button', position: [-0.22, 0.91, 0.16], hudWidth: 10 },
+      { id: 'a4', label: 'Bill validator', position: [0.01, 0.55, 0.2], hudWidth: 22 },
+      { id: 'a5', label: 'Scanner', position: [0.195, 0.72, 0.2], hudWidth: 13 },
+      { id: 'a6', label: 'LED push button', position: [0.23, 0.91, 0.16], hudWidth: 10 },
+      { id: 'a7', label: 'LED push button', position: [-0.21, 0.91, 0.16], hudWidth: 10 },
       { id: 'a8', label: 'Joystick', position: [0.01, 0.94, 0.16], hudWidth: 20 },
     ],
     b: [
-      { id: 'b1', label: 'Joystick', position: [0, 0.94, 0.18], hudWidth: 17 },
-      { id: 'b2', label: 'LED push button', position: [0.15, 0.91, 0.18], hudWidth: 7 },
-      { id: 'b3', label: 'LED push button', position: [-0.15, 0.91, 0.18], hudWidth: 7 },
-      { id: 'b4', label: 'Bill validator', position: [0.1, 1.05, 0.1], hudWidth: 10 },
+      { id: 'b1', label: 'Joystick', position: [0, 0.96, 0.18], hudWidth: 17 },
+      { id: 'b2', label: 'LED push button', position: [0.14, 0.92, 0.18], hudWidth: 7 },
+      { id: 'b3', label: 'LED push button', position: [-0.14, 0.92, 0.18], hudWidth: 7 },
+      { id: 'b4', label: 'Bill validator', position: [0.09, 1.05, 0.1], hudWidth: 10 },
       { id: 'b5', label: 'Scanner', position: [0.2, 1.05, 0.1], hudWidth: 5 },
       { id: 'b6', label: 'FullHD touch display', position: [0, 1.5, 0.15], hudWidth: 17 },
-      { id: 'b7', label: 'Right Speaker', position: [0.2, 1.78, 0.15], hudWidth: 5 },
-      { id: 'b8', label: 'Left Speaker', position: [-0.2, 1.78, 0.15], hudWidth: 5 },
+      { id: 'b7', label: 'Right Speaker', position: [0.2, 1.78, 0.1], hudWidth: 5 },
+      { id: 'b8', label: 'Left Speaker', position: [-0.2, 1.78, 0.1], hudWidth: 5 },
     ],
   },
-  // glints: {
-  //   a: [
-  //     [0.2, 1.68, -0.1],
-  //     [-0.2, 1.68, -0.1],
-  //     [0.22, 0.91, 0.16],
-  //     [0.01, 0.94, 0.16],
-  //   ] as [number, number, number][],
-  //   b: [
-  //     [0, 0.94, 0.18],
-  //     [0.15, 0.91, 0.18],
-  //     [-0.15, 0.91, 0.18],
-  //     [0, 1.5, 0.15],
-  //   ] as [number, number, number][],
-  // },
 } as const
 
 export type SceneMode = 'grid' | 'focus-a' | 'focus-b'
