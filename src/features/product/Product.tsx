@@ -58,19 +58,19 @@ export function Product({
 
   const variants = {
     hidden: {
-      scale: 0.8,
-      y: -1.0,
+      scale: 0.9,
+      y: -0.2, // Subtle slide instead of big jump
       opacity: 0,
-      transition: { duration: 0.0 },
+      transition: { duration: 0 },
     },
     grid: {
       ...getTransform(gridCfg),
       opacity: 1,
       transition: {
         ...moveTransition,
-        duration: 1.6,
-        delay: 0.1,
-        opacity: { duration: 0.1, delay: 0.1 },
+        duration: 1.8, // Slightly slower for initial entry
+        delay: 0.2,
+        opacity: { duration: 1.0, delay: 0.2 }, // Long smooth fade in
       },
     },
     'focus-a': isA
@@ -97,14 +97,11 @@ export function Product({
         },
   }
 
-  const opacity = useMotionValue(1)
+  const opacity = useMotionValue(0) // Start at 0 for seamless entry
   const [hovered, setHovered] = useState(false)
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-  
-  // Track if we are currently animating to control invalidation
   const isAnimating = useRef(false)
 
-  // Wake up on mode change
   useEffect(() => {
     invalidate()
   }, [mode, invalidate])
@@ -113,21 +110,20 @@ export function Product({
     e.stopPropagation()
     if (mode !== 'grid') return
     if (document.body.classList.contains('grabbing')) return
-
     if (hoverTimeout.current) {
       clearTimeout(hoverTimeout.current)
       hoverTimeout.current = null
     }
     setHovered(true)
     if (onPointerOver) onPointerOver(e)
-    invalidate() // Wake up for hover scale animation
+    invalidate()
   }
 
   const handlePointerOut = (e: ThreeEvent<MouseEvent>) => {
     hoverTimeout.current = setTimeout(() => {
       setHovered(false)
       if (onPointerOut) onPointerOut(e)
-      invalidate() // Wake up for hover scale return
+      invalidate()
     }, 60)
   }
 
@@ -162,7 +158,6 @@ export function Product({
         if (typeof latest.opacity === 'number') {
           opacity.set(latest.opacity)
         }
-        // Only invalidate if we are actually in the middle of a transition
         if (isAnimating.current) {
           invalidate()
         }
@@ -171,10 +166,7 @@ export function Product({
       <motion.group
         animate={{ scale: mode === 'grid' && hovered ? 1.05 : 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        onUpdate={() => {
-          // Hover animation needs invalidation too, but only when hovered state is active
-          invalidate()
-        }}
+        onUpdate={() => invalidate()}
       >
         <Bvh firstHitOnly>
           <ProductModel url={url} opacityValue={opacity} />

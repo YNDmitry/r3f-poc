@@ -13,10 +13,19 @@ export interface WebflowSceneConfig {
   poster: string | null
 }
 
-function SceneInner({ config, setDpr, isArcade }: { 
+// Signal when models are actually mounted inside Suspense
+function LoadingTrigger({ onLoad }: { onLoad: () => void }) {
+  useEffect(() => {
+    onLoad()
+  }, [onLoad])
+  return null
+}
+
+function SceneInner({ config, setDpr, isArcade, onLoaded }: { 
   config: WebflowSceneConfig, 
   setDpr: (v: number) => void,
-  isArcade: boolean
+  isArcade: boolean,
+  onLoaded: () => void
 }) {
   const { invalidate } = useThree()
   
@@ -32,6 +41,8 @@ function SceneInner({ config, setDpr, isArcade }: {
       />
       <AdaptiveDpr />
       <AdaptiveEvents />
+
+      <LoadingTrigger onLoad={onLoaded} />
 
       {isArcade ? (
         <ArcadeScene modelA={config.modelA ?? undefined} modelB={config.modelB ?? undefined} />
@@ -50,6 +61,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const [debug, setDebug] = useState(false)
   const [mode, setMode] = useState<string>((window as any).jenkaLastMode || 'grid')
   const [isTouch, setIsTouch] = useState(false)
+  const [isSceneReady, setIsSceneReady] = useState(false)
 
   useEffect(() => {
     setIsTouch(window.matchMedia('(pointer: coarse)').matches)
@@ -101,6 +113,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
     `mode-${mode}`,
     `is-${device}`,
     isTouch ? 'is-touch' : '',
+    isSceneReady ? 'is-ready' : 'is-loading'
   ]
     .filter(Boolean)
     .join(' ')
@@ -124,9 +137,11 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
             backgroundImage: `url(${config.poster})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            transition: 'opacity 0.8s ease-out',
+            transition: 'opacity 1.2s ease-in-out, transform 1.2s ease-in-out',
             pointerEvents: 'none',
             zIndex: 10,
+            opacity: isSceneReady ? 0 : 1,
+            transform: isSceneReady ? 'scale(1.05)' : 'scale(1)',
           }}
         />
       )}
@@ -144,11 +159,16 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0)
         }}
+        style={{
+           opacity: isSceneReady ? 1 : 0,
+           transition: 'opacity 1s ease-in-out'
+        }}
       >
         <SceneInner 
           config={config} 
           setDpr={setDpr} 
           isArcade={isArcade} 
+          onLoaded={() => setIsSceneReady(true)}
         />
       </Canvas>
       
