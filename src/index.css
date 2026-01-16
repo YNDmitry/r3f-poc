@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -10,39 +11,31 @@ html, body {
   touch-action: auto;
 }
 
-/* Base canvas interaction settings */
+/* Base interaction settings */
 .r3f-canvas-container canvas,
 .r3f-canvas-element {
-  pointer-events: auto;
-  touch-action: auto;
+  pointer-events: auto !important; /* ALWAYS allow pointer events to detect clicks */
 }
 
-/* 1. MOBILE/TABLET INTERACTION LOGIC (STRICT) */
-/* We use [style] to increase specificity over R3F inline styles */
+/* 1. MOBILE/TABLET SCROLL LOGIC */
 @media screen and (max-width: 991px) {
-  /* Default state (Grid Mode): Disable interactions */
-  .r3f-canvas-container.mode-grid .r3f-canvas-element[style],
-  .r3f-canvas-container.mode-grid canvas[style],
-  .r3f-canvas-container.mode-grid .r3f-canvas-element,
-  .r3f-canvas-container.mode-grid canvas {
-    pointer-events: none !important;
-    touch-action: auto !important;
-  }
-
-  /* Focus Mode: Enable interactions */
+  /* Focus Mode: Block browser scroll to allow 3D interactions (OrbitControls) */
   .r3f-canvas-container:not(.mode-grid) .r3f-canvas-element[style],
   .r3f-canvas-container:not(.mode-grid) canvas[style],
   .r3f-canvas-container:not(.mode-grid) .r3f-canvas-element,
   .r3f-canvas-container:not(.mode-grid) canvas {
-    pointer-events: auto !important;
     touch-action: none !important;
+  }
+
+  .r3f-canvas-container canvas,
+  .r3f-canvas-element {
+    pointer-events: none !important;
   }
 }
 
 /* 2. GENERAL FOCUS MODE STYLES */
 .r3f-canvas-container:not(.mode-grid) canvas {
   touch-action: none !important;
-  pointer-events: auto !important;
 }
 
 /* 3. UI OVERLAY (SwipeHint) */
@@ -57,6 +50,7 @@ html, body {
   pointer-events: none;
 }
 
-.grabbing, .grabbing * {
+.grabbing,
+.grabbing * {
   cursor: grabbing !important;
 }

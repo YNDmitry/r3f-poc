@@ -108,7 +108,6 @@ export const Product = memo(function Product({
   }, [mode, invalidate])
 
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
-    if (isMobile) return 
     e.stopPropagation()
     if (mode !== 'grid') return
     if (document.body.classList.contains('grabbing')) return
@@ -147,13 +146,13 @@ export const Product = memo(function Product({
       }}
       onPointerDown={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
-        if (mode === 'grid') return
 
         e.stopPropagation()
         clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
       }}
       onPointerUp={(e: ThreeEvent<MouseEvent>) => {
-        if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
+        if (mode === 'focus-a' || mode === 'focus-b') return
+        if (device === 'tablet' || device === 'mobile') return
 
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y

@@ -31,11 +31,8 @@ export function SwipeHint() {
     }
   }, [active])
 
-  // Hide if not visible or if we want to force hide on desktop (currently enabled for all for testing)
-  if (!visible) return null
-  
-  // If you want to strictly hide on desktop in production, uncomment the line below:
-  // if (device === 'desktop') return null
+  // Only show on mobile and tablet, and only if user hasn't interacted yet
+  if (!visible || device === 'desktop') return null
 
   return (
     <div className="swipe-hint-container">
@@ -75,7 +72,7 @@ export function SwipeHint() {
             textTransform: 'uppercase'
           }}
         >
-          {device === 'desktop' ? 'Drag to Rotate' : 'Swipe to Rotate'}
+          Swipe to Rotate
         </span>
       </div>
     </div>

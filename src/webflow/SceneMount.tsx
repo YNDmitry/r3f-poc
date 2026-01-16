@@ -139,9 +139,6 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
     .filter(Boolean)
     .join(' ')
 
-  // Dynamic pointer events based on mode and device
-  const pointerEvents = (isMobileOrTablet && mode === 'grid') ? 'none' : 'auto'
-
   return (
     <div ref={containerRef} className={containerClasses}>
       {import.meta.env.DEV && <Stats />}
@@ -157,7 +154,6 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
               gl={{ alpha: true }}
               className="canvas-box_canvas"
               camera={{ position: [0, 0, 4.4], fov: 35 }}
-              style={{ pointerEvents }}
             >
               <group position={arcadeStagePos}>
                 <Glints
@@ -186,8 +182,8 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
           }}
           style={{
             opacity: isSceneReady ? 1 : 0,
-            pointerEvents: pointerEvents as any, // Override R3F default
-            touchAction: (isMobileOrTablet && mode === 'grid') ? 'auto' : 'none'
+            pointerEvents:
+              (device === 'tablet' || device === 'mobile') && mode === 'grid' ? 'none' : 'auto',
           }}
         >
           <SceneInner
