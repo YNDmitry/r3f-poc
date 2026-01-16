@@ -60,7 +60,7 @@ function HotspotItem({
 
     // Only render if we are interacting or transitioning
     if (isTransitioning) {
-        invalidate()
+      invalidate()
     }
   })
 
@@ -141,12 +141,10 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
   const variants = {
     visible: {
       opacity: 1,
-      scale: 1,
       transition: { duration: 0.2, ease: 'easeOut' },
     },
     hidden: {
       opacity: 0,
-      scale: 0.8,
       transition: { duration: 0.15, ease: 'easeIn' },
     },
   }
