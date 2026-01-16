@@ -110,6 +110,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       const newMode = customEvent.detail?.mode
       if (newMode && (newMode === 'grid' || newMode === 'focus-a' || newMode === 'focus-b')) {
         startTransition(() => {
+          if (isPending) return
           setMode(newMode as SceneMode)
         })
         // Force an immediate frame to start animations
@@ -130,7 +131,9 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
     } else {
       document.body.style.overflow = ''
     }
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      document.body.style.overflow = ''
+    }
   }, [device, mode])
 
   useEffect(() => {
@@ -154,7 +157,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         document.querySelector('[data-tres="scene"]') ||
         document.querySelector('[data-tres="hero-duo"]') ||
         document.querySelector('.r3f-canvas-container')
-      
+
       if (container) {
         // Use a slight delay to avoid jank at the start of transition
         const timer = setTimeout(() => {
@@ -243,6 +246,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             isRotating={isRotating}
             onClick={() => {
               startTransition(() => {
+                if (isPending) return
                 setMode((m) => (m === 'focus-a' ? 'grid' : 'focus-a'))
               })
               invalidate()
@@ -261,6 +265,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             isRotating={isRotating}
             onClick={() => {
               startTransition(() => {
+                if (isPending) return
                 setMode((m) => (m === 'focus-b' ? 'grid' : 'focus-b'))
               })
               invalidate()
