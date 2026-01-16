@@ -77,7 +77,7 @@ export const CONSTANTS = {
       { id: 'b1', label: 'Joystick', position: [0, 0.96, 0.18], hudWidth: 17 },
       { id: 'b2', label: 'LED push button', position: [0.14, 0.92, 0.18], hudWidth: 7 },
       { id: 'b3', label: 'LED push button', position: [-0.14, 0.92, 0.18], hudWidth: 7 },
-      { id: 'b4', label: 'Bill validator', position: [0.09, 1.05, 0.1], hudWidth: 10 },
+      { id: 'b4', label: 'Bill validator', position: [0.08, 1.05, 0.1], hudWidth: 10 },
       { id: 'b5', label: 'Scanner', position: [0.2, 1.05, 0.1], hudWidth: 5 },
       { id: 'b6', label: 'FullHD touch display', position: [0, 1.5, 0.15], hudWidth: 17 },
       { id: 'b7', label: 'Right Speaker', position: [0.2, 1.78, 0.1], hudWidth: 5 },

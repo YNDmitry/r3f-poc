@@ -193,7 +193,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         fov={layout.baseFov}
       />
 
-      {mode !== 'grid' && (
+      {mode !== 'grid' && device !== 'desktop' && (
         <Html fullscreen className="r3f-hud">
           <SwipeHint />
         </Html>
@@ -232,9 +232,8 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         onChange={() => invalidate()}
       />
 
-      <Environment preset="city" blur={1.0} background={false} resolution={256} />
+      <Environment preset="city" blur={5.0} background={false} resolution={128} />
       <Lights mode={mode} />
-      <Backdrop onReset={() => setMode('grid')} />
 
       <group position={stagePos}>
         <Suspense fallback={null}>
