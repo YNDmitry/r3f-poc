@@ -9,6 +9,7 @@ import type { ProductType, HotspotItem } from '../../config/scene-config'
 import { useCinematicCamera } from '../../hooks/useCinematicCamera'
 import { Hud } from '../../components/Hud/Hud'
 import { motion } from 'framer-motion-3d'
+import { useDevice } from '../../hooks/useDevice'
 
 interface HotspotsProps {
   type: ProductType
@@ -58,9 +59,8 @@ function HotspotItem({
       ;(meshRef.current.material as THREE.MeshBasicMaterial).opacity = newBaseOpacity
     }
 
-    // Only render if we are interacting or transitioning
     if (isTransitioning) {
-        invalidate()
+      invalidate()
     }
   })
 
@@ -113,19 +113,12 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
   const { invalidate } = useThree()
   const config = useSceneConfig()
   const items = config.customHotspots[type]
+  const device = useDevice()
 
   const [cameraTargetId, setCameraTargetId] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
 
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const starTexture = useMemo(() => createStarTexture(), [])
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 991)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
   useEffect(() => {
     if (!active) {
@@ -133,28 +126,19 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
     }
   }, [active])
 
-  const shouldRunCamera = active && !isMobile
+  const showHotspots = active && device === 'desktop'
+  const shouldRunCamera = active && device === 'desktop'
   useCinematicCamera(shouldRunCamera, controlsRef, cameraTargetId, items)
 
-  if (!active || isMobile) return null
-
   const variants = {
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.2, ease: 'easeOut' },
-    },
-    hidden: {
-      opacity: 0,
-      scale: 0.8,
-      transition: { duration: 0.15, ease: 'easeIn' },
-    },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
+    hidden: { opacity: 0, scale: 0.8, transition: { duration: 0.15 } },
   }
 
   return (
     <motion.group
       initial="visible"
-      animate={visible ? 'visible' : 'hidden'}
+      animate={showHotspots && visible ? 'visible' : 'hidden'}
       variants={variants}
       onUpdate={() => invalidate()}
       visible={true}
@@ -164,9 +148,9 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
           key={item.id}
           item={item}
           texture={starTexture}
-          globalVisible={visible}
+          globalVisible={showHotspots && visible}
           onHover={(id) => {
-            if (!visible) return
+            if (!(showHotspots && visible)) return
             if (leaveTimer.current) {
               clearTimeout(leaveTimer.current)
               leaveTimer.current = null
