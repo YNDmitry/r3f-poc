@@ -180,7 +180,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   return (
     <div ref={containerRef} className={containerClasses}>
       {import.meta.env.DEV && <Stats />}
-      {import.meta.env.DEV && <Leva collapsed={false} />}
+      {import.meta.env.DEV && <Leva hidden={!import.meta.env.DEV} collapsed={false} />}
 
       {config.poster && (
         <div className="scene-poster" style={{ backgroundImage: `url("${config.poster}")` }} />
