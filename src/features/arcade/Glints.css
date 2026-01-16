@@ -1,6 +1,5 @@
 .glint-container {
-  width: 8rem;
-  height: 8rem;
+  /* Size is now handled by inline styles in React for instant application */
   display: flex;
   align-items: center;
   justify-content: center;

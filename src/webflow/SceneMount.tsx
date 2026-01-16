@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Scene } from '../Scene'
 import { ArcadeScene } from '../ArcadeScene'
@@ -6,7 +6,10 @@ import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents } from '@react-t
 import { preloadSceneModels } from '../utils/preloadSceneModels'
 import { useDevice } from '../hooks/useDevice'
 import { Leva, useControls, button } from 'leva'
+import { Glints } from '../features/arcade/Glints'
+import { ARCADE_CONSTANTS } from '../config/arcade-config'
 import * as THREE from 'three'
+import './SceneMount.css'
 
 export interface WebflowSceneConfig {
   scene: string
@@ -25,55 +28,67 @@ function LoadingTrigger({ onLoad }: { onLoad: () => void }) {
 
 function DebugControls({ sceneName }: { sceneName: string }) {
   const { gl, invalidate, scene, camera } = useThree()
-  
+
   useControls(sceneName, {
     '📸 Take Poster': button(() => {
       const oldColor = new THREE.Color()
       gl.getClearColor(oldColor)
       const oldAlpha = gl.getClearAlpha()
-      
+
       gl.setClearColor(0x000000, 0)
       invalidate()
-      
+
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            const dataUrl = gl.domElement.toDataURL('image/png')
-            const link = document.createElement('a')
-            link.download = `poster-${sceneName.toLowerCase().replace(/\s+/g, '-')}.png`
-            link.href = dataUrl
-            link.click()
-            gl.setClearColor(oldColor, oldAlpha)
+          const dataUrl = gl.domElement.toDataURL('image/png')
+          const link = document.createElement('a')
+          link.download = `poster-${sceneName.toLowerCase().replace(/\s+/g, '-')}.png`
+          link.href = dataUrl
+          link.click()
+          gl.setClearColor(oldColor, oldAlpha)
         })
       })
     }),
   })
-  
+
   return null
 }
 
-function SceneInner({ config, setDpr, isArcade, onLoaded, debug }: { 
-  config: WebflowSceneConfig, 
-  setDpr: (v: number) => void,
-  isArcade: boolean,
-  onLoaded: () => void,
+function SceneInner({
+  config,
+  setDpr,
+  isArcade,
+  onLoaded,
+  debug,
+}: {
+  config: WebflowSceneConfig
+  setDpr: (v: number) => void
+  isArcade: boolean
+  onLoaded: () => void
   debug: boolean
 }) {
   const { invalidate } = useThree()
-  
+
   return (
     <>
-      <PerformanceMonitor 
+      <PerformanceMonitor
         bounds={() => [60, 120]}
         onChange={({ factor }) => {
           const targetDpr = 1 + (Math.min(1.75, window.devicePixelRatio) - 1) * factor
           setDpr(targetDpr)
           invalidate()
-        }} 
+        }}
       />
       <AdaptiveDpr />
       <AdaptiveEvents />
 
-      {debug && <DebugControls sceneName={isArcade ? 'Arcade Scene' : `Scene ${config.modelA?.split('/').pop() || 'Default'}`} />}
+      {debug && (
+        <DebugControls
+          sceneName={
+            isArcade ? 'Arcade Scene' : `Scene ${config.modelA?.split('/').pop() || 'Default'}`
+          }
+        />
+      )}
       <LoadingTrigger onLoad={onLoaded} />
 
       {isArcade ? (
@@ -96,6 +111,10 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const [isTouch, setIsTouch] = useState(false)
   const [isSceneReady, setIsSceneReady] = useState(false)
 
+  const isArcade = config.scene === 'arcade' || config.scene === 'hero-duo'
+  const isMobileOrTablet = device === 'mobile' || device === 'tablet'
+  const shouldDisable3D = isArcade && isMobileOrTablet
+
   useEffect(() => {
     setIsTouch(window.matchMedia('(pointer: coarse)').matches)
     const checkDebug = () => {
@@ -106,7 +125,8 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
         if (!document.getElementById(styleId)) {
           const style = document.createElement('style')
           style.id = styleId
-          style.innerHTML = '#leva__root { z-index: 999999 !important; position: fixed !important; }'
+          style.innerHTML =
+            '#leva__root { z-index: 999999 !important; position: fixed !important; }'
           document.head.appendChild(style)
         }
       }
@@ -127,89 +147,90 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   }, [])
 
   useEffect(() => {
-    if (config.modelA && config.modelB) preloadSceneModels(config.modelA, config.modelB)
-  }, [config.modelA, config.modelB])
+    if (!shouldDisable3D && config.modelA && config.modelB)
+      preloadSceneModels(config.modelA, config.modelB)
+  }, [config.modelA, config.modelB, shouldDisable3D])
 
   useEffect(() => {
     if (!containerRef.current) return
-    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { rootMargin: '200px' })
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      rootMargin: '200px',
+    })
     observer.observe(containerRef.current)
     return () => observer.disconnect()
   }, [])
 
-  const isArcade = config.scene === 'arcade' || config.scene === 'hero-duo'
+  useEffect(() => {
+    if (shouldDisable3D) setIsSceneReady(true)
+  }, [shouldDisable3D])
+
+  const arcadeStagePos = [0, -1.1, -0.5] as [number, number, number]
+
+  const containerClasses = [
+    'r3f-canvas-container',
+    `mode-${mode}`,
+    `is-${device}`,
+    isTouch ? 'is-touch' : '',
+    isSceneReady ? 'is-ready' : 'is-loading',
+    shouldDisable3D ? 'is-mobile-arcade' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div
-      ref={containerRef}
-      className={`r3f-canvas-container mode-${mode} is-${device} ${isTouch ? 'is-touch' : ''} ${isSceneReady ? 'is-ready' : 'is-loading'}`}
-      style={{ 
-        width: '100%', 
-        height: '100%', 
-        position: 'relative',
-        minHeight: '400px'
-      }}
-    >
+    <div ref={containerRef} className={containerClasses}>
       {(import.meta.env.DEV || debug) && <Stats />}
-      
-      {/* 
-        We only render Leva if this is the FIRST scene mount on the page, 
-        or we let Leva handle itself as a singleton. 
-        Adding unique key to force a single instance.
-      */}
       <Leva hidden={!debug} isRoot={true} />
 
       {config.poster && (
-        <div
-          className="scene-poster"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url("${config.poster}")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            transition: 'opacity 1.5s ease-in-out, transform 2s ease-out',
-            pointerEvents: 'none',
-            zIndex: 100,
-            opacity: isSceneReady ? 0 : 1,
-            transform: isSceneReady ? 'scale(1.1)' : 'scale(1)',
-          }}
-        />
+        <div className="scene-poster" style={{ backgroundImage: `url("${config.poster}")` }} />
       )}
 
-      <Canvas
-        className="r3f-canvas-element"
-        frameloop={inView ? 'demand' : 'never'}
-        dpr={dpr}
-        gl={{
-          powerPreference: 'high-performance',
-          antialias: true,
-          stencil: false,
-          alpha: true,
-          preserveDrawingBuffer: true
-        }}
-        onCreated={({ gl }) => {
-          gl.setClearColor(0x000000, 0)
-        }}
-        style={{
-           opacity: isSceneReady ? 1 : 0,
-           transition: 'opacity 1.2s ease-in-out',
-           position: 'absolute',
-           inset: 0
-        }}
-      >
-        <SceneInner 
-          config={config} 
-          setDpr={setDpr} 
-          isArcade={isArcade} 
-          onLoaded={() => setIsSceneReady(true)}
-          debug={debug}
-        />
-      </Canvas>
-      
-      {(isTouch || device !== 'desktop') && mode === 'grid' && (
-        <div className="scroll-shield" style={{ position: 'absolute', inset: 0, zIndex: 50, touchAction: 'pan-y' }} />
+      {shouldDisable3D && (
+        <div className="canvas-box">
+          <div className="canvas-box_inner">
+            <Canvas
+              gl={{ alpha: true }}
+              className="canvas-box_canvas"
+              camera={{ position: [0, 0, 4.4], fov: 35 }}
+            >
+              <group position={arcadeStagePos}>
+                <Glints
+                  positions={[...ARCADE_CONSTANTS.glints.modelA, ...ARCADE_CONSTANTS.glints.modelB]}
+                />
+              </group>
+            </Canvas>
+          </div>
+        </div>
+      )}
+
+      {!shouldDisable3D && (
+        <Canvas
+          className="r3f-canvas-element"
+          frameloop={inView ? 'demand' : 'never'}
+          dpr={dpr}
+          gl={{
+            powerPreference: 'high-performance',
+            antialias: true,
+            stencil: false,
+            alpha: true,
+            preserveDrawingBuffer: true,
+          }}
+          onCreated={({ gl }) => {
+            gl.setClearColor(0x000000, 0)
+          }}
+          style={{
+            opacity: isSceneReady ? 1 : 0,
+          }}
+        >
+          <SceneInner
+            config={config}
+            setDpr={setDpr}
+            isArcade={isArcade}
+            onLoaded={() => setIsSceneReady(true)}
+            debug={debug}
+          />
+        </Canvas>
       )}
     </div>
   )

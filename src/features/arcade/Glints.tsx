@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { Html } from '@react-three/drei'
 import './Glints.css'
 
@@ -8,6 +8,27 @@ interface GlintsProps {
 }
 
 export function Glints({ positions = [], visible = true }: GlintsProps) {
+  // Initialize state immediately to avoid first-render jump
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 991
+    }
+    return false
+  })
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 991
+      setIsMobile(mobile)
+    }
+    
+    // Extra check after mount to handle some mobile browser delays
+    checkMobile()
+    
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   const glints = useMemo(() => {
     return positions.map((pos, i) => ({
       id: i,
@@ -19,6 +40,8 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
   }, [positions])
 
   if (!visible) return null
+
+  const baseSize = isMobile ? '4rem' : '8rem'
 
   return (
     <group>
@@ -37,6 +60,8 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
               '--glint-delay': `${glint.delay}s`,
               '--glint-duration': `${glint.duration}s`,
               '--glint-scale': glint.scale,
+              width: baseSize,
+              height: baseSize,
             } as any}
           >
             <svg viewBox="0 0 256 256" className="glint-svg">
@@ -52,17 +77,9 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
                   <stop offset="100%" stopColor="white" stopOpacity="0" />
                 </radialGradient>
               </defs>
-              
-              {/* Central Glow */}
               <circle cx="128" cy="128" r="60" fill="url(#glowGradient)" />
-              
-              {/* Horizontal Beam */}
               <ellipse cx="128" cy="128" rx="110" ry="3" fill="url(#beamGradient)" />
-              
-              {/* Vertical Beam */}
               <ellipse cx="128" cy="128" rx="3" ry="110" fill="url(#beamGradient)" />
-              
-              {/* Bright Core */}
               <circle cx="128" cy="128" r="4" fill="white" />
             </svg>
           </div>
