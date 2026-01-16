@@ -17,6 +17,7 @@ interface ProductProps {
   url: string
   controlsRef: React.RefObject<OrbitControlsImpl | null>
   isRotating?: boolean
+  setIsRotating?: (v: boolean) => void
   onClick: (e: ThreeEvent<MouseEvent>) => void
   onPointerOver?: (e: ThreeEvent<MouseEvent>) => void
   onPointerOut?: (e: ThreeEvent<MouseEvent>) => void
@@ -31,6 +32,7 @@ export function Product({
   url,
   controlsRef,
   isRotating = false,
+  setIsRotating,
 }: ProductProps) {
   const { invalidate } = useThree()
   const config = useSceneConfig()
@@ -144,10 +146,12 @@ export function Product({
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
         e.stopPropagation()
         clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
+        if (setIsRotating) setIsRotating(true)
       }}
       onPointerUp={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
         e.stopPropagation()
+        if (setIsRotating) setIsRotating(false)
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y
         if (Math.sqrt(dx * dx + dy * dy) < 10) {

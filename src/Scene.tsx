@@ -115,22 +115,29 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
     return () => window.removeEventListener('jenka-set-mode', handleSetMode)
   }, [])
 
-  // Scroll lock effect
+  // Smart Scroll lock effect
   useEffect(() => {
     const isMobileOrTablet = device === 'mobile' || device === 'tablet'
-    const shouldLock = isMobileOrTablet && (mode === 'grid' || isRotating)
+    const canvas = document.querySelector('canvas')
     
-    if (shouldLock) {
+    // Lock body scroll only when actually interacting/rotating
+    if (isMobileOrTablet && isRotating) {
       document.body.style.overflow = 'hidden'
-      document.body.style.touchAction = 'none'
     } else {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
+    }
+
+    // Toggle touch-action on canvas based on mode
+    if (canvas) {
+      if (mode !== 'grid') {
+        canvas.classList.add('no-scroll')
+      } else {
+        canvas.classList.remove('no-scroll')
+      }
     }
     
     return () => {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
     }
   }, [device, mode, isRotating])
 
@@ -152,9 +159,12 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
     if (mode === 'focus-a' || mode === 'focus-b') {
       const container =
         document.querySelector('[data-tres="scene"]') ||
-        document.querySelector('[data-tres="hero-duo"]')
+        document.querySelector('[data-tres="hero-duo"]') ||
+        document.querySelector('.r3f-canvas-container')
+      
       if (container) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // Centering logic: scroll so that the element is exactly in the middle of the viewport
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
   }, [mode])
@@ -237,6 +247,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             url={modelA}
             controlsRef={controlsRef}
             isRotating={isRotating}
+            setIsRotating={setIsRotating}
             onClick={() => setMode((m) => (m === 'focus-a' ? 'grid' : 'focus-a'))}
             onPointerOver={() => {
               if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
@@ -250,6 +261,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             url={modelB}
             controlsRef={controlsRef}
             isRotating={isRotating}
+            setIsRotating={setIsRotating}
             onClick={() => setMode((m) => (m === 'focus-b' ? 'grid' : 'focus-b'))}
             onPointerOver={() => {
               if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
