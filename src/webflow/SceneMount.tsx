@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Scene } from '../Scene'
 import { ArcadeScene } from '../ArcadeScene'
-import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents, Preload } from '@react-three/drei'
+import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei'
 import { preloadSceneModels } from '../utils/preloadSceneModels'
 import { useDevice } from '../hooks/useDevice'
 import { Leva, useControls, button } from 'leva'
@@ -27,7 +27,7 @@ function LoadingTrigger({ onLoad }: { onLoad: () => void }) {
 }
 
 function DebugControls({ sceneName }: { sceneName: string }) {
-  const { gl, invalidate, scene, camera } = useThree()
+  const { gl, invalidate } = useThree()
 
   useControls(sceneName, {
     '📸 Take Poster': button(() => {
