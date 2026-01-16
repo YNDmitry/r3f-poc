@@ -32,7 +32,6 @@ export function Product({
   url,
   controlsRef,
   isRotating = false,
-  setIsRotating,
 }: ProductProps) {
   const { invalidate } = useThree()
   const config = useSceneConfig()
@@ -148,19 +147,19 @@ export function Product({
       onPointerDown={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
         // Don't stop propagation on grid to let page scroll
-        if (mode === 'grid') return 
-        
+        if (mode === 'grid') return
+
         e.stopPropagation()
         clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
       }}
       onPointerUp={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
-        
+
         // Manual click detection for grid mode
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y
         const dist = Math.sqrt(dx * dx + dy * dy)
-        
+
         if (dist < 10) {
           if (mode === 'grid') e.stopPropagation()
           onClick(e)
