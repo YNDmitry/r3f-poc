@@ -18,7 +18,6 @@
   transform: scale(1.1);
 }
 
-/* Base container styles if needed */
 .r3f-canvas-container {
   width: 100%;
   height: 100%;
@@ -28,30 +27,30 @@
 }
 
 .r3f-canvas-element {
-  transition: 'opacity 1.2s ease-in-out';
-  position: 'absolute';
+  transition: opacity 1.2s ease-in-out;
+  position: absolute;
   inset: 0;
 }
 
 .canvas-box {
-  position: 'absolute';
+  position: absolute;
   inset: 0;
   z-index: 20;
-  pointer-events: 'none';
-  display: 'flex';
-  align-items: 'center';
-  justify-content: 'center';
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .canvas-box_inner {
-  width: '100%';
-  aspect-ratio: '1/1';
-  position: 'relative';
+  width: 100%;
+  aspect-ratio: 1/1;
+  position: relative;
 }
 
 .canvas-box_canvas {
-  pointer-events: 'none';
-  position: 'absolute';
+  pointer-events: none;
+  position: absolute;
   inset: 0;
 }
 

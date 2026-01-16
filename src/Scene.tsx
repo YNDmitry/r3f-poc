@@ -1,8 +1,8 @@
-import { useRef, useEffect, useState, Suspense } from 'react'
+import { useRef, useEffect, useState, Suspense, useTransition } from 'react'
 import { PerspectiveCamera, OrbitControls, Environment, Html, Preload } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 
 import { CONSTANTS } from './config/scene-config'
 import type { SceneMode } from './config/scene-config'
@@ -29,6 +29,7 @@ function Intro({
   cameraZ: number
 }) {
   const isDone = useRef(false)
+  const { invalidate } = useThree()
 
   useFrame((state, delta) => {
     if (isDone.current) return
@@ -56,7 +57,7 @@ function Intro({
       if (controlsRef.current) {
         controlsRef.current.update()
       }
-      state.invalidate()
+      invalidate()
     } else {
       isDone.current = true
     }
@@ -92,6 +93,8 @@ function Backdrop({ onReset }: { onReset: () => void }) {
 function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
   const { layout } = useSceneConfig()
   const device = useDevice()
+  const { invalidate } = useThree()
+  const [isPending, startTransition] = useTransition()
 
   const [mode, setMode] = useState<SceneMode>('grid')
   const [isRotating, setIsRotating] = useState(false)
@@ -106,37 +109,28 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       const customEvent = event as CustomEvent<{ mode: string }>
       const newMode = customEvent.detail?.mode
       if (newMode && (newMode === 'grid' || newMode === 'focus-a' || newMode === 'focus-b')) {
-        setMode(newMode as SceneMode)
+        startTransition(() => {
+          setMode(newMode as SceneMode)
+        })
+        // Force an immediate frame to start animations
+        invalidate()
       }
     }
     window.addEventListener('jenka-set-mode', handleSetMode)
     const initialMode = (window as any).jenkaLastMode
     if (initialMode) setMode(initialMode)
     return () => window.removeEventListener('jenka-set-mode', handleSetMode)
-  }, [])
+  }, [invalidate])
 
-  // Strict Interaction & Scroll control
+  // Body scroll lock effect (only for mobile in focus mode)
   useEffect(() => {
     const isMobileOrTablet = device === 'mobile' || device === 'tablet'
-    const canvas = document.querySelector('canvas')
-    
-    if (canvas) {
-      if (mode !== 'grid') {
-        // FOCUS MODE: Enable interaction, disable page scroll
-        canvas.classList.add('no-scroll')
-        canvas.classList.remove('pointer-none')
-        if (isMobileOrTablet) document.body.style.overflow = 'hidden'
-      } else {
-        // GRID MODE: Disable all interactions, enable page scroll
-        canvas.classList.remove('no-scroll')
-        canvas.classList.add('pointer-none')
-        document.body.style.overflow = ''
-      }
-    }
-    
-    return () => {
+    if (isMobileOrTablet && mode !== 'grid') {
+      document.body.style.overflow = 'hidden'
+    } else {
       document.body.style.overflow = ''
     }
+    return () => { document.body.style.overflow = '' }
   }, [device, mode])
 
   useEffect(() => {
@@ -150,8 +144,9 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
       camera.lookAt(0, 0, 0)
       controls.target.set(0, 0, 0)
       controls.update()
+      invalidate()
     }
-  }, [mode, cameraZ, layout.baseFov])
+  }, [mode, cameraZ, layout.baseFov, invalidate])
 
   useEffect(() => {
     if (mode === 'focus-a' || mode === 'focus-b') {
@@ -161,7 +156,11 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         document.querySelector('.r3f-canvas-container')
       
       if (container) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Use a slight delay to avoid jank at the start of transition
+        const timer = setTimeout(() => {
+          container.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
+        return () => clearTimeout(timer)
       }
     }
   }, [mode])
@@ -184,17 +183,18 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
 
   return (
     <>
-      {mode !== 'grid' && (
-        <Html fullscreen style={{ pointerEvents: 'none' }}>
-          <SwipeHint />
-        </Html>
-      )}
       <PerspectiveCamera
         ref={cameraRef}
         makeDefault
         position={[0, 2, cameraZ + 5]}
         fov={layout.baseFov}
       />
+
+      {mode !== 'grid' && (
+        <Html fullscreen className="r3f-hud">
+          <SwipeHint />
+        </Html>
+      )}
 
       <Intro controlsRef={controlsRef} cameraZ={cameraZ} />
 
@@ -221,15 +221,12 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         onStart={() => {
           setIsRotating(true)
           document.body.classList.add('grabbing')
-          const canvas = document.querySelector('canvas')
-          if (canvas) canvas.style.cursor = 'grabbing'
         }}
         onEnd={() => {
           setIsRotating(false)
           document.body.classList.remove('grabbing')
-          const canvas = document.querySelector('canvas')
-          if (canvas) canvas.style.cursor = 'grab'
         }}
+        onChange={() => invalidate()}
       />
 
       <Environment preset="city" blur={1.0} background={false} resolution={256} />
@@ -244,7 +241,12 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             url={modelA}
             controlsRef={controlsRef}
             isRotating={isRotating}
-            onClick={() => setMode((m) => (m === 'focus-a' ? 'grid' : 'focus-a'))}
+            onClick={() => {
+              startTransition(() => {
+                setMode((m) => (m === 'focus-a' ? 'grid' : 'focus-a'))
+              })
+              invalidate()
+            }}
             onPointerOver={() => {
               if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
             }}
@@ -257,7 +259,12 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             url={modelB}
             controlsRef={controlsRef}
             isRotating={isRotating}
-            onClick={() => setMode((m) => (m === 'focus-b' ? 'grid' : 'focus-b'))}
+            onClick={() => {
+              startTransition(() => {
+                setMode((m) => (m === 'focus-b' ? 'grid' : 'focus-b'))
+              })
+              invalidate()
+            }}
             onPointerOver={() => {
               if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
             }}

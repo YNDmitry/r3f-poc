@@ -1,31 +1,60 @@
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
-}
-
-canvas {
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: auto !important;
-}
-
-/* Полное отключение взаимодействия */
-canvas.pointer-none {
-  pointer-events: none !important;
-}
-
-/* Режим фокуса: отключаем скролл для работы OrbitControls */
-canvas.no-scroll {
-  touch-action: none !important;
-  pointer-events: auto !important;
 }
 
 .r3f-canvas-container {
   width: 100%;
   height: 100%;
   position: relative;
+  touch-action: auto;
+}
+
+/* Base canvas interaction settings */
+.r3f-canvas-container canvas,
+.r3f-canvas-element {
+  pointer-events: auto;
+  touch-action: auto;
+}
+
+/* 1. MOBILE/TABLET INTERACTION LOGIC (STRICT) */
+/* We use [style] to increase specificity over R3F inline styles */
+@media screen and (max-width: 991px) {
+  /* Default state (Grid Mode): Disable interactions */
+  .r3f-canvas-container.mode-grid .r3f-canvas-element[style],
+  .r3f-canvas-container.mode-grid canvas[style],
+  .r3f-canvas-container.mode-grid .r3f-canvas-element,
+  .r3f-canvas-container.mode-grid canvas {
+    pointer-events: none !important;
+    touch-action: auto !important;
+  }
+
+  /* Focus Mode: Enable interactions */
+  .r3f-canvas-container:not(.mode-grid) .r3f-canvas-element[style],
+  .r3f-canvas-container:not(.mode-grid) canvas[style],
+  .r3f-canvas-container:not(.mode-grid) .r3f-canvas-element,
+  .r3f-canvas-container:not(.mode-grid) canvas {
+    pointer-events: auto !important;
+    touch-action: none !important;
+  }
+}
+
+/* 2. GENERAL FOCUS MODE STYLES */
+.r3f-canvas-container:not(.mode-grid) canvas {
+  touch-action: none !important;
+  pointer-events: auto !important;
+}
+
+/* 3. UI OVERLAY (SwipeHint) */
+.r3f-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999 !important;
+}
+
+.r3f-hud > div {
+  pointer-events: none;
 }
 
 .grabbing, .grabbing * {

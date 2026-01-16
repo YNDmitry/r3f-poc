@@ -1,7 +1,7 @@
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { type ThreeEvent, useThree } from '@react-three/fiber'
 import { type TransformData } from '../../config/scene-config'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { motion } from 'framer-motion-3d'
 import { useMotionValue } from 'framer-motion'
 import { useSceneConfig } from '../../config/SceneContext'
@@ -23,7 +23,7 @@ interface ProductProps {
   onPointerOut?: (e: ThreeEvent<MouseEvent>) => void
 }
 
-export function Product({
+export const Product = memo(function Product({
   mode,
   type,
   onClick,
@@ -108,7 +108,7 @@ export function Product({
   }, [mode, invalidate])
 
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
-    if (isMobile) return // Disable hover effects on mobile/tablet
+    if (isMobile) return 
     e.stopPropagation()
     if (mode !== 'grid') return
     if (document.body.classList.contains('grabbing')) return
@@ -140,13 +140,13 @@ export function Product({
       variants={variants}
       onAnimationStart={() => {
         isAnimating.current = true
+        invalidate()
       }}
       onAnimationComplete={() => {
         isAnimating.current = false
       }}
       onPointerDown={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
-        // Don't stop propagation on grid to let page scroll
         if (mode === 'grid') return
 
         e.stopPropagation()
@@ -155,7 +155,6 @@ export function Product({
       onPointerUp={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
 
-        // Manual click detection for grid mode
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y
         const dist = Math.sqrt(dx * dx + dy * dy)
@@ -187,4 +186,4 @@ export function Product({
       </motion.group>
     </motion.group>
   )
-}
+})
