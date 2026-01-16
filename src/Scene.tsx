@@ -66,30 +66,6 @@ function Intro({
   return null
 }
 
-function Backdrop({ onReset }: { onReset: () => void }) {
-  const clickStart = useRef({ x: 0, y: 0 })
-
-  return (
-    <group>
-      <mesh
-        position={[0, 0, -1]}
-        visible={false}
-        onPointerDown={(e) => {
-          clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
-        }}
-        onPointerUp={(e) => {
-          const dx = e.nativeEvent.clientX - clickStart.current.x
-          const dy = e.nativeEvent.clientY - clickStart.current.y
-          if (Math.sqrt(dx * dx + dy * dy) < 10) onReset()
-        }}
-      >
-        <planeGeometry args={[100, 100]} />
-        <meshBasicMaterial />
-      </mesh>
-    </group>
-  )
-}
-
 function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
   const { layout } = useSceneConfig()
   const device = useDevice()
