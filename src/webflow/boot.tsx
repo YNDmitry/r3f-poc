@@ -8,8 +8,6 @@ declare global {
   }
 }
 
-// --- Config Parser ---
-
 function safeUrl(url: string | null): string | null {
   if (!url) return null
   return url.trim()
@@ -17,18 +15,14 @@ function safeUrl(url: string | null): string | null {
 
 function parseConfig(el: HTMLElement): WebflowSceneConfig {
   const ds = el.dataset
-
   const rawType = ds.scene || ds.tres || 'hero-duo'
-
   return {
     scene: rawType,
     modelA: safeUrl(ds.modelA || null),
     modelB: safeUrl(ds.modelB || null),
-    poster: safeUrl(ds.poster || null), // Support data-poster
+    poster: safeUrl(ds.poster || null),
   }
 }
-
-// --- Registry & Lifecycle ---
 
 const mountedRoots = new Map<HTMLElement, Root>()
 
@@ -37,18 +31,22 @@ export function mountAll() {
 
   elements.forEach((el) => {
     if (mountedRoots.has(el)) return
-
     const sceneAttr = el.dataset.tres || ''
     if (!sceneAttr) return
 
     try {
       const config = parseConfig(el)
       const root = createRoot(el)
-
-      root.render(<SceneMount config={config} />)
-
-      mountedRoots.set(el, root)
-      el.dataset.sceneManaged = 'true'
+      
+      // Use requestIdleCallback if available, otherwise setTimeout
+      // This defers the heavy React mounting until the main thread is free
+      const deferFunc = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
+      
+      deferFunc(() => {
+        root.render(<SceneMount config={config} />)
+        mountedRoots.set(el, root)
+        el.dataset.sceneManaged = 'true'
+      })
     } catch (err) {
       console.error('[WebflowTres] Failed to mount scene:', el, err)
       el.dataset.tresState = 'error'
@@ -71,8 +69,6 @@ export function refresh() {
   mountAll()
 }
 
-// --- Bootstrap ---
-
 if (typeof window !== 'undefined') {
   window.WebflowTresScenes = {
     mountAll,
@@ -82,8 +78,9 @@ if (typeof window !== 'undefined') {
   }
 
   const init = () => {
-    mountAll()
-    console.warn('[WebflowTres] Initialized (React)')
+    // Delay initialization to let the browser finish initial page paint and scripts
+    setTimeout(mountAll, 200)
+    console.warn('[WebflowTres] Initialized (React Deferred)')
   }
 
   if (document.readyState === 'loading') {
@@ -94,17 +91,13 @@ if (typeof window !== 'undefined') {
 
   const observer = new MutationObserver((mutations) => {
     let shouldMount = false
-
-    // 1. Cleanup disconnected roots (Fix Memory Leak)
     mountedRoots.forEach((root, el) => {
       if (!el.isConnected) {
         root.unmount()
         mountedRoots.delete(el)
-        console.log('[WebflowTres] Auto-unmounted disconnected root', el)
       }
     })
 
-    // 2. Check for new nodes
     for (const m of mutations) {
       if (m.type !== 'childList') continue
       for (const node of Array.from(m.addedNodes)) {
@@ -117,7 +110,6 @@ if (typeof window !== 'undefined') {
       }
       if (shouldMount) break
     }
-
     if (shouldMount) mountAll()
   })
 
