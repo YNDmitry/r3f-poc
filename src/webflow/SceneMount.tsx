@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Scene } from '../Scene'
 import { ArcadeScene } from '../ArcadeScene'
-import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei'
+import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents, Preload } from '@react-three/drei'
 import { preloadSceneModels } from '../utils/preloadSceneModels'
 import { useDevice } from '../hooks/useDevice'
 import { Leva, useControls, button } from 'leva'
@@ -179,8 +179,8 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
 
   return (
     <div ref={containerRef} className={containerClasses}>
-      {(import.meta.env.DEV || debug) && <Stats />}
-      <Leva hidden={!debug} isRoot={true} />
+      {import.meta.env.DEV && <Stats />}
+      {import.meta.env.DEV && <Leva collapsed={false} />}
 
       {config.poster && (
         <div className="scene-poster" style={{ backgroundImage: `url("${config.poster}")` }} />

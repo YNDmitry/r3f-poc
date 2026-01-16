@@ -9,7 +9,7 @@ import { SwipeHint } from './components/Hud/SwipeHint'
 
 function Controls() {
   const { gl, scene: threeScene, camera } = useThree()
-  
+
   useControls({
     scene: { options: ['Default', 'Arcade'], value: 'Default' },
     stats: true,
@@ -21,34 +21,33 @@ function Controls() {
       link.click()
     }),
   })
-  
+
   return null
 }
 
 function AppContent() {
   // We need to get the 'scene' and 'stats' values outside of Canvas to toggle components
   // but useControls needs to be inside the Canvas to access R3F state for the button
-  // Let's use a simpler approach: two useControls calls. 
+  // Let's use a simpler approach: two useControls calls.
   // One for UI toggles (outside), one for GL actions (inside).
-  
-  const [{ scene, stats }] = useControls(() => ({
+
+  const [{ scene }] = useControls(() => ({
     scene: { options: ['Default', 'Arcade'], value: 'Default' },
-    stats: true,
   }))
 
   const [dpr, setDpr] = useState(window.devicePixelRatio || 1)
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#111' }}>
-      <Leva collapsed={false} />
-      {stats && <Stats />}
+      {import.meta.env.DEV && <Leva collapsed={false} />}
+      {import.meta.env.DEV && <Stats />}
       <SwipeHint />
       <Canvas
         frameloop="demand"
         dpr={dpr}
         gl={{
           powerPreference: 'high-performance',
-          antialias: true, 
+          antialias: true,
           stencil: false,
           alpha: true,
           preserveDrawingBuffer: true,
