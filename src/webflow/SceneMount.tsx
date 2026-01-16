@@ -172,7 +172,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
           dpr={dpr}
           gl={{
             powerPreference: 'high-performance',
-            antialias: true,
+            antialias: false,
             stencil: false,
             alpha: true,
             preserveDrawingBuffer: true,

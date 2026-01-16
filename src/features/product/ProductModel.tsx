@@ -1,9 +1,9 @@
-import { MotionValue } from 'framer-motion'
 import { useEffect, useMemo, useRef } from 'react'
 import { useGLTF, Bvh } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Glints } from '../arcade/Glints'
+import type { MotionValue } from 'framer-motion'
 
 interface ProductModelProps {
   url: string
@@ -99,7 +99,7 @@ export function ProductModel({
         m.opacity = latest
       })
       clonedScene.visible = latest > 0.05
-      
+
       // ONLY invalidate if actually changing. Framer motion sometimes sends micro-updates.
       invalidate()
     })

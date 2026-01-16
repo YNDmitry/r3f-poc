@@ -4,7 +4,6 @@ import { type TransformData } from '../../config/scene-config'
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion-3d'
 import { useMotionValue } from 'framer-motion'
-import { Bvh } from '@react-three/drei'
 import { useSceneConfig } from '../../config/SceneContext'
 import type { SceneMode, ProductType } from '../../config/scene-config'
 import { useWebflow } from '../../hooks/useWebflow'
@@ -135,8 +134,12 @@ export function Product({
       initial="hidden"
       animate={mode}
       variants={variants}
-      onAnimationStart={() => { isAnimating.current = true }}
-      onAnimationComplete={() => { isAnimating.current = false }}
+      onAnimationStart={() => {
+        isAnimating.current = true
+      }}
+      onAnimationComplete={() => {
+        isAnimating.current = false
+      }}
       onPointerDown={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
         e.stopPropagation()
@@ -168,15 +171,8 @@ export function Product({
         transition={{ duration: 0.5, ease: 'easeOut' }}
         onUpdate={() => invalidate()}
       >
-        <Bvh firstHitOnly>
-          <ProductModel url={url} opacityValue={opacity} />
-          <Hotspots
-            type={type}
-            active={isFocused}
-            controlsRef={controlsRef}
-            visible={!isRotating}
-          />
-        </Bvh>
+        <ProductModel url={url} opacityValue={opacity} />
+        <Hotspots type={type} active={isFocused} controlsRef={controlsRef} visible={!isRotating} />
       </motion.group>
     </motion.group>
   )

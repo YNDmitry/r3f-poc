@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, Suspense } from 'react'
-import { PerspectiveCamera, OrbitControls, Environment, Html } from '@react-three/drei'
+import { PerspectiveCamera, OrbitControls, Environment, Html, Preload } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
@@ -114,6 +114,25 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
     if (initialMode) setMode(initialMode)
     return () => window.removeEventListener('jenka-set-mode', handleSetMode)
   }, [])
+
+  // Scroll lock effect
+  useEffect(() => {
+    const isMobileOrTablet = device === 'mobile' || device === 'tablet'
+    const shouldLock = isMobileOrTablet && (mode === 'grid' || isRotating)
+    
+    if (shouldLock) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+  }, [device, mode, isRotating])
 
   useEffect(() => {
     if (mode === 'grid' && controlsRef.current && cameraRef.current) {
@@ -240,6 +259,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
         </Suspense>
       </group>
       <Effects />
+      <Preload all />
     </>
   )
 }
