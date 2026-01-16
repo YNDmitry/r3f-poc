@@ -38,6 +38,7 @@ export function Product({
   const config = useSceneConfig()
   const { trigger } = useWebflow()
   const device = useDevice()
+  const isMobile = device === 'mobile' || device === 'tablet'
 
   const isA = type === 'a'
   const gridCfg = config.grid[type][device]
@@ -60,7 +61,7 @@ export function Product({
   const variants = {
     hidden: {
       scale: 0.9,
-      y: -0.2, // Subtle slide instead of big jump
+      y: -0.2,
       opacity: 0,
       transition: { duration: 0 },
     },
@@ -69,9 +70,9 @@ export function Product({
       opacity: 1,
       transition: {
         ...moveTransition,
-        duration: 1.8, // Slightly slower for initial entry
+        duration: 1.8,
         delay: 0.2,
-        opacity: { duration: 1.0, delay: 0.2 }, // Long smooth fade in
+        opacity: { duration: 1.0, delay: 0.2 },
       },
     },
     'focus-a': isA
@@ -98,7 +99,7 @@ export function Product({
         },
   }
 
-  const opacity = useMotionValue(0) // Start at 0 for seamless entry
+  const opacity = useMotionValue(0)
   const [hovered, setHovered] = useState(false)
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isAnimating = useRef(false)
@@ -108,6 +109,7 @@ export function Product({
   }, [mode, invalidate])
 
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
+    if (isMobile) return // Disable hover effects on mobile/tablet
     e.stopPropagation()
     if (mode !== 'grid') return
     if (document.body.classList.contains('grabbing')) return
@@ -121,6 +123,7 @@ export function Product({
   }
 
   const handlePointerOut = (e: ThreeEvent<MouseEvent>) => {
+    if (isMobile) return
     hoverTimeout.current = setTimeout(() => {
       setHovered(false)
       if (onPointerOut) onPointerOut(e)
@@ -144,17 +147,22 @@ export function Product({
       }}
       onPointerDown={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
+        // Don't stop propagation on grid to let page scroll
+        if (mode === 'grid') return 
+        
         e.stopPropagation()
         clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
-        if (setIsRotating) setIsRotating(true)
       }}
       onPointerUp={(e: ThreeEvent<MouseEvent>) => {
         if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
-        e.stopPropagation()
-        if (setIsRotating) setIsRotating(false)
+        
+        // Manual click detection for grid mode
         const dx = e.nativeEvent.clientX - clickStart.current.x
         const dy = e.nativeEvent.clientY - clickStart.current.y
-        if (Math.sqrt(dx * dx + dy * dy) < 10) {
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        
+        if (dist < 10) {
+          if (mode === 'grid') e.stopPropagation()
           onClick(e)
           trigger('From canvas')
         }

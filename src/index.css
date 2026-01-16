@@ -8,11 +8,18 @@ html, body {
 canvas {
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  touch-action: pan-y !important;
+  touch-action: auto !important;
 }
 
+/* Полное отключение взаимодействия */
+canvas.pointer-none {
+  pointer-events: none !important;
+}
+
+/* Режим фокуса: отключаем скролл для работы OrbitControls */
 canvas.no-scroll {
   touch-action: none !important;
+  pointer-events: auto !important;
 }
 
 .r3f-canvas-container {
