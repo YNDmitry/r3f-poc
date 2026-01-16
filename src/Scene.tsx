@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, Suspense } from 'react'
-import { PerspectiveCamera, OrbitControls, Environment, Preload, Html } from '@react-three/drei'
+import { PerspectiveCamera, OrbitControls, Environment, Html } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
@@ -140,8 +140,6 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
     }
   }, [mode])
 
-  // Removed redundant useFrame that was checking controls.enabled every frame
-
   useEffect(() => {
     const canvas = document.querySelector('canvas')
     if (canvas) canvas.style.cursor = 'grab'
@@ -239,7 +237,6 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
             }}
             onPointerOut={() => (document.body.style.cursor = 'auto')}
           />
-          <Preload all />
         </Suspense>
       </group>
       <Effects />
