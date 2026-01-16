@@ -2,20 +2,18 @@ import { useState, useEffect, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Scene } from '../Scene'
 import { ArcadeScene } from '../ArcadeScene'
-import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei'
 import { preloadSceneModels } from '../utils/preloadSceneModels'
+import { PerformanceMonitor, Stats, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei'
 import { useDevice } from '../hooks/useDevice'
-import { Leva, useControls, button } from 'leva'
 import { Glints } from '../features/arcade/Glints'
 import { ARCADE_CONSTANTS } from '../config/arcade-config'
-import * as THREE from 'three'
 import './SceneMount.css'
 
 export interface WebflowSceneConfig {
-  scene: string
-  modelA: string | null
   modelB: string | null
+  modelA: string | null
   poster: string | null
+  scene: string
 }
 
 function LoadingTrigger({ onLoad }: { onLoad: () => void }) {
@@ -26,40 +24,11 @@ function LoadingTrigger({ onLoad }: { onLoad: () => void }) {
   return null
 }
 
-function DebugControls({ sceneName }: { sceneName: string }) {
-  const { gl, invalidate } = useThree()
-
-  useControls(sceneName, {
-    '📸 Take Poster': button(() => {
-      const oldColor = new THREE.Color()
-      gl.getClearColor(oldColor)
-      const oldAlpha = gl.getClearAlpha()
-
-      gl.setClearColor(0x000000, 0)
-      invalidate()
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const dataUrl = gl.domElement.toDataURL('image/png')
-          const link = document.createElement('a')
-          link.download = `poster-${sceneName.toLowerCase().replace(/\s+/g, '-')}.png`
-          link.href = dataUrl
-          link.click()
-          gl.setClearColor(oldColor, oldAlpha)
-        })
-      })
-    }),
-  })
-
-  return null
-}
-
 function SceneInner({
   config,
   setDpr,
   isArcade,
   onLoaded,
-  debug,
 }: {
   config: WebflowSceneConfig
   setDpr: (v: number) => void
@@ -82,13 +51,6 @@ function SceneInner({
       <AdaptiveDpr />
       <AdaptiveEvents />
 
-      {debug && (
-        <DebugControls
-          sceneName={
-            isArcade ? 'Arcade Scene' : `Scene ${config.modelA?.split('/').pop() || 'Default'}`
-          }
-        />
-      )}
       <LoadingTrigger onLoad={onLoaded} />
 
       {isArcade ? (
@@ -180,7 +142,6 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   return (
     <div ref={containerRef} className={containerClasses}>
       {import.meta.env.DEV && <Stats />}
-      {import.meta.env.DEV && <Leva hidden={!import.meta.env.DEV} collapsed={false} />}
 
       {config.poster && (
         <div className="scene-poster" style={{ backgroundImage: `url("${config.poster}")` }} />
