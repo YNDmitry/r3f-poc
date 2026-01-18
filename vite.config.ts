@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     cors: true, // Разрешаем CORS для Webflow
     origin: 'http://localhost:5173',
+    allowedHosts: true,
   },
   build: {
     // Собираем как библиотеку (виджет)
@@ -18,9 +19,7 @@ export default defineConfig({
       formats: ['es', 'umd'], // ES для современных, UMD для совместимости
     },
     rollupOptions: {
-      // Убеждаемся, что React не бандлится дважды, если он уже есть на сайте (опционально)
-      // Но для Webflow лучше бандлить всё вместе, чтобы работало "из коробки"
-      // external: ['react', 'react-dom'], 
+      external: ['react', 'react-dom'],
       output: {
         // Глобальные переменные для UMD сборки
         globals: {
@@ -29,7 +28,7 @@ export default defineConfig({
         },
         // Стабильные имена файлов без хешей для CDN
         entryFileNames: 'r3f-poc.js',
-        assetFileNames: 'r3f-poc.[ext]', 
+        assetFileNames: 'r3f-poc.[ext]',
       },
     },
     cssCodeSplit: false, // Весь CSS в один файл

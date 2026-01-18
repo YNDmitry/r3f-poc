@@ -4,6 +4,7 @@ import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Glints } from '../arcade/Glints'
 import type { MotionValue } from 'framer-motion'
+import { KTX2Loader } from 'three-stdlib'
 
 interface ProductModelProps {
   url: string
@@ -20,8 +21,13 @@ export function ProductModel({
   glintsVisible = true,
   glintPositions = [],
 }: ProductModelProps) {
-  const { invalidate } = useThree()
-  const { scene } = useGLTF(url)
+  const { invalidate, gl } = useThree()
+  const { scene } = useGLTF(url, undefined, undefined, (loader) => {
+    const ktx2Loader = new KTX2Loader()
+    ktx2Loader.setTranscoderPath('https://cdn.jsdelivr.net/gh/pmndrs/drei-assets/basis/')
+    ktx2Loader.detectSupport(gl)
+    loader.setKTX2Loader(ktx2Loader)
+  })
   const clonedScene = useMemo(() => scene.clone(true), [scene])
 
   useEffect(() => {
@@ -67,7 +73,7 @@ export function ProductModel({
         if (meshName === 'Plane001') {
           const baseMat = sourceMat || (mesh.material as THREE.Material)
           const newMat = baseMat.clone() as THREE.MeshStandardMaterial
-          newMat.color.set('#gray')
+          newMat.color.set('gray')
           mesh.material = newMat
         }
 
