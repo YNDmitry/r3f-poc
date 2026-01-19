@@ -19,7 +19,7 @@ export default defineConfig({
       formats: ['es', 'umd'], // ES для современных, UMD для совместимости
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      // external: ['react', 'react-dom'],
       output: {
         // Глобальные переменные для UMD сборки
         globals: {
