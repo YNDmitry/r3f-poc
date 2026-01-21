@@ -55,7 +55,7 @@ export function Glints({ positions = [], visible = true, uniformScale }: GlintsP
         pos,
         delay: seededRandom(seed) * 2,
         duration: 1.5 + seededRandom(seed + 1) * 1.5,
-        scale: uniformScale ?? (0.8 + seededRandom(seed + 2) * 0.4),
+        scale: uniformScale ?? 0.6 + seededRandom(seed + 2) * 0.4,
       }
     })
   }, [positions, uniformScale])
