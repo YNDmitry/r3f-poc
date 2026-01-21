@@ -1,3 +1,13 @@
+.glint-wrapper {
+  opacity: 1;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.glint-wrapper--hidden {
+  opacity: 0;
+}
+
 .glint-container {
   /* Size is now handled by inline styles in React for instant application */
   display: flex;
@@ -18,7 +28,7 @@
 
 @media screen and (max-width: 768px) {
   .glint-svg {
-    display: calc(scale(var(--glint-scale)) / 2);
+    transform: scale(calc(var(--glint-scale) * 0.6));
   }
 }
 

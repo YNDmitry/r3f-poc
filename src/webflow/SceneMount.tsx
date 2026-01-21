@@ -277,12 +277,24 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   const posterGlints =
     ARCADE_CONSTANTS.posterGlints[device] || ARCADE_CONSTANTS.posterGlints.desktop
   const posterGlintModels = posterGlints.models ?? (['modelA', 'modelB'] as const)
-  const glintsPositions = posterGlintModels.flatMap((key) => ARCADE_CONSTANTS.glints[key])
+  const glintsPositions =
+    posterGlints.positions && posterGlints.positions.length
+      ? posterGlints.positions
+      : posterGlintModels.flatMap((key) => ARCADE_CONSTANTS.glints[key])
+  const glintsOffset = posterGlints.offset
+  const glintsScale = posterGlints.scale
   const glintsStagePos = [
-    arcadeStagePos[0] + posterGlints.offset[0],
-    arcadeStagePos[1] + posterGlints.offset[1],
-    arcadeStagePos[2] + posterGlints.offset[2],
+    arcadeStagePos[0] + glintsOffset[0],
+    arcadeStagePos[1] + glintsOffset[1],
+    arcadeStagePos[2] + glintsOffset[2],
   ] as [number, number, number]
+  const glintsPoseKey = posterGlints.pose ?? 'front'
+  const posterGlintsPose =
+    glintsPoseKey === 'none'
+      ? null
+      : ARCADE_CONSTANTS.states[glintsPoseKey]?.[device] ||
+        ARCADE_CONSTANTS.states[glintsPoseKey]?.desktop ||
+        ARCADE_CONSTANTS.states.front.desktop
 
   const containerClasses = [
     'r3f-canvas-container',
@@ -330,8 +342,18 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
               className="canvas-box_canvas"
               camera={{ position: [0, 0, 4.4], fov: 35 }}
             >
-              <group position={glintsStagePos} scale={posterGlints.scale}>
-                <Glints positions={glintsPositions} />
+              <group position={glintsStagePos} scale={glintsScale}>
+                {posterGlintsPose ? (
+                  <group
+                    position={posterGlintsPose.pos}
+                    rotation={posterGlintsPose.rot}
+                    scale={posterGlintsPose.scale}
+                  >
+                    <Glints positions={glintsPositions} uniformScale={1} />
+                  </group>
+                ) : (
+                  <Glints positions={glintsPositions} uniformScale={1} />
+                )}
               </group>
             </Canvas>
           </div>
@@ -389,17 +411,43 @@ function extractBackgroundImageUrl(value: string): string | null {
 
 function parseLength(value: string, total: number): number | null {
   if (!value || value === 'auto') return null
-  if (value.endsWith('%')) {
-    const percent = Number.parseFloat(value)
+  const normalized = value.trim().toLowerCase()
+  if (normalized.endsWith('%')) {
+    const percent = Number.parseFloat(normalized)
     if (Number.isNaN(percent)) return null
     return (percent / 100) * total
   }
-  if (value.endsWith('px')) {
-    const px = Number.parseFloat(value)
+  if (normalized.endsWith('px')) {
+    const px = Number.parseFloat(normalized)
     return Number.isNaN(px) ? null : px
   }
-  const num = Number.parseFloat(value)
-  return Number.isNaN(num) ? null : num
+
+  const match = /^(-?\d*\.?\d+)([a-z]*)$/.exec(normalized)
+  if (!match) return null
+  const amount = Number.parseFloat(match[1])
+  const unit = match[2]
+  if (Number.isNaN(amount)) return null
+
+  if (unit === 'rem' || unit === 'em') {
+    const rootSize =
+      typeof window !== 'undefined'
+        ? Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize || '16')
+        : 16
+    return amount * (Number.isNaN(rootSize) ? 16 : rootSize)
+  }
+
+  if (unit === 'vw') {
+    if (typeof window === 'undefined') return (amount / 100) * total
+    return (amount / 100) * window.innerWidth
+  }
+
+  if (unit === 'vh') {
+    if (typeof window === 'undefined') return (amount / 100) * total
+    return (amount / 100) * window.innerHeight
+  }
+
+  if (!unit) return amount
+  return null
 }
 
 function resolveBackgroundSize(value: string, container: Size, image: Size): Size {
