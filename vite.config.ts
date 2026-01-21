@@ -27,8 +27,8 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
         },
         // Стабильные имена файлов без хешей для CDN
-        entryFileNames: 'r3f-poc.js',
-        assetFileNames: 'r3f-poc.[ext]',
+        entryFileNames: 'r3f-poc-prod.js',
+        assetFileNames: 'r3f-poc-prod.[ext]',
       },
     },
     cssCodeSplit: false, // Весь CSS в один файл
