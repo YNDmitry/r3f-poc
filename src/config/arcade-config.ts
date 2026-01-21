@@ -71,7 +71,15 @@ export const ARCADE_CONSTANTS = {
       scale: 1,
       pose: 'front',
       models: ['modelA', 'modelB'] as const,
-      positions: [] as [number, number, number][],
+      positions: [
+        [0, 0.8, 0.18],
+        [-0.15, 1.2, 0.18],
+        [0.05, 1.22, 0.18],
+        [0.25, 1.8, 0.18],
+        [0.05, 2.05, 0.2],
+        [0.4, 2.05, 0.2],
+        [0.3, 1.2, 0.24],
+      ] as [number, number, number][],
     },
     tablet: {
       offset: [0, 0, 0] as [number, number, number],
