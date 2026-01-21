@@ -290,6 +290,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   ] as [number, number, number]
   const glintsPoseKey = posterGlints.pose ?? 'front'
   const posterGlintsPose =
+    // @ts-ignore
     glintsPoseKey === 'none'
       ? null
       : ARCADE_CONSTANTS.states[glintsPoseKey]?.[device] ||
