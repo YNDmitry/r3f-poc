@@ -25,26 +25,31 @@ const seededRandom = (seed: number) => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
+type DeviceKind = 'mobile' | 'tablet' | 'desktop'
+
+const getDeviceKind = (): DeviceKind => {
+  if (typeof window === 'undefined') return 'desktop'
+  const width = window.innerWidth
+  if (width <= 479) return 'mobile'
+  if (width <= 991) return 'tablet'
+  return 'desktop'
+}
+
 export function Glints({ positions = [], visible = true, uniformScale }: GlintsProps) {
   // Initialize state immediately to avoid first-render jump
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth <= 991
-    }
-    return false
-  })
+  const [deviceKind, setDeviceKind] = useState<DeviceKind>(() => getDeviceKind())
 
   useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth <= 991
-      setIsMobile(mobile)
+    const checkDevice = () => {
+      const nextDevice = getDeviceKind()
+      setDeviceKind((prev) => (prev === nextDevice ? prev : nextDevice))
     }
 
     // Extra check after mount to handle some mobile browser delays
-    checkMobile()
+    checkDevice()
 
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener('resize', checkDevice)
+    return () => window.removeEventListener('resize', checkDevice)
   }, [])
 
   const glints = useMemo(() => {
@@ -60,7 +65,8 @@ export function Glints({ positions = [], visible = true, uniformScale }: GlintsP
     })
   }, [positions, uniformScale])
 
-  const baseSize = isMobile ? '4rem' : '8rem'
+  const baseSizeRem = deviceKind === 'mobile' ? 4.5 : deviceKind === 'tablet' ? 5 : 8
+  const baseSize = `${baseSizeRem}rem`
 
   return (
     <group>
