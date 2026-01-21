@@ -30,14 +30,14 @@ export function Lights({ mode }: LightsProps) {
         2. Strong Rim light -> Separates object from background (Premium feel)
         3. Colored Fill -> Adds richness to shadows
       */}
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={0.55} />
 
       {/* Key Light (Warm/Neutral) */}
       <motion.directionalLight
         animate={mode}
         variants={keyLightVariants}
         transition={transition}
-        intensity={1}
+        intensity={1.2}
         shadow-bias={-0.0001}
         onUpdate={() => invalidate()}
       />
@@ -47,7 +47,7 @@ export function Lights({ mode }: LightsProps) {
         animate={mode}
         variants={fillLightVariants}
         transition={transition}
-        intensity={0.3}
+        intensity={0.45}
         color="#b0c7ff"
         onUpdate={() => invalidate()}
       />
@@ -56,7 +56,7 @@ export function Lights({ mode }: LightsProps) {
       {/*<directionalLight position={[0.0, 5.0, -5.0]} intensity={3.0} color="#ffffff" />*/}
 
       {/* Bottom Uplight (Bounce simulation) */}
-      <directionalLight position={[0.0, -5.0, 2.0]} intensity={0.5} color="#e0e0ff" />
+      <directionalLight position={[0.0, -5.0, 2.0]} intensity={0.7} color="#e0e0ff" />
     </>
   )
 }

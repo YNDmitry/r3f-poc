@@ -109,34 +109,19 @@ function HotspotItem({
   )
 }
 
-export function Hotspots({ type, active, controlsRef, visible = true }: HotspotsProps) {
+function HotspotsActive({
+  items,
+  visible,
+  onHover,
+  onLeave,
+}: {
+  items: ReadonlyArray<HotspotItem>
+  visible: boolean
+  onHover: (id: string) => void
+  onLeave: () => void
+}) {
   const { invalidate } = useThree()
-  const config = useSceneConfig()
-  const items = config.customHotspots[type]
-
-  const [cameraTargetId, setCameraTargetId] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
-
-  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const starTexture = useMemo(() => createStarTexture(), [])
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 991)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  useEffect(() => {
-    if (!active) {
-      setCameraTargetId(null)
-    }
-  }, [active])
-
-  const shouldRunCamera = active && !isMobile
-  useCinematicCamera(shouldRunCamera, controlsRef, cameraTargetId, items)
-
-  if (!active || isMobile) return null
 
   const variants = {
     visible: {
@@ -163,21 +148,58 @@ export function Hotspots({ type, active, controlsRef, visible = true }: Hotspots
           item={item}
           texture={starTexture}
           globalVisible={visible}
-          onHover={(id) => {
-            if (!visible) return
-            if (leaveTimer.current) {
-              clearTimeout(leaveTimer.current)
-              leaveTimer.current = null
-            }
-            setCameraTargetId(id)
-          }}
-          onLeave={() => {
-            leaveTimer.current = setTimeout(() => {
-              setCameraTargetId(null)
-            }, 300)
-          }}
+          onHover={onHover}
+          onLeave={onLeave}
         />
       ))}
     </motion.group>
+  )
+}
+
+export function Hotspots({ type, active, controlsRef, visible = true }: HotspotsProps) {
+  const config = useSceneConfig()
+  const items = config.customHotspots[type]
+
+  const [cameraTargetId, setCameraTargetId] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 991)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    if (!active) {
+      setCameraTargetId(null)
+    }
+  }, [active])
+
+  const shouldRunCamera = active && !isMobile
+  useCinematicCamera(shouldRunCamera, controlsRef, cameraTargetId, items)
+
+  if (!active || isMobile) return null
+
+  return (
+    <HotspotsActive
+      items={items}
+      visible={visible}
+      onHover={(id) => {
+        if (!visible) return
+        if (leaveTimer.current) {
+          clearTimeout(leaveTimer.current)
+          leaveTimer.current = null
+        }
+        setCameraTargetId(id)
+      }}
+      onLeave={() => {
+        leaveTimer.current = setTimeout(() => {
+          setCameraTargetId(null)
+        }, 300)
+      }}
+    />
   )
 }

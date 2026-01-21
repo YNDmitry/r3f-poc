@@ -66,7 +66,7 @@ export const CONSTANTS = {
     a: [
       { id: 'a1', label: 'Right Speaker', position: [0.22, 1.68, -0.1], hudWidth: 11 },
       { id: 'a2', label: 'Left Speaker', position: [-0.2, 1.68, -0.1], hudWidth: 10 },
-      { id: 'a3', label: 'FullHD touch display', position: [0, 1.4, -0.1], hudWidth: 22 },
+      { id: 'a3', label: 'Full HD touch display', position: [0, 1.4, -0.1], hudWidth: 22 },
       { id: 'a4', label: 'Bill validator', position: [0.01, 0.55, 0.2], hudWidth: 22 },
       { id: 'a5', label: 'Scanner', position: [0.195, 0.72, 0.2], hudWidth: 13 },
       { id: 'a6', label: 'LED push button', position: [0.23, 0.91, 0.16], hudWidth: 10 },
@@ -79,7 +79,7 @@ export const CONSTANTS = {
       { id: 'b3', label: 'LED push button', position: [-0.14, 0.92, 0.18], hudWidth: 7 },
       { id: 'b4', label: 'Bill validator', position: [0.08, 1.05, 0.1], hudWidth: 10 },
       { id: 'b5', label: 'Scanner', position: [0.2, 1.05, 0.1], hudWidth: 5 },
-      { id: 'b6', label: 'FullHD touch display', position: [0, 1.5, 0.15], hudWidth: 17 },
+      { id: 'b6', label: 'Full HD touch display', position: [0, 1.5, 0.15], hudWidth: 17 },
       { id: 'b7', label: 'Right Speaker', position: [0.2, 1.78, 0.1], hudWidth: 5 },
       { id: 'b8', label: 'Left Speaker', position: [-0.2, 1.78, 0.1], hudWidth: 5 },
     ],

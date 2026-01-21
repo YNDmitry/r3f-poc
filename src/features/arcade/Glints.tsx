@@ -21,10 +21,10 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
       const mobile = window.innerWidth <= 991
       setIsMobile(mobile)
     }
-    
+
     // Extra check after mount to handle some mobile browser delays
     checkMobile()
-    
+
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
@@ -35,7 +35,7 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
       pos,
       delay: Math.random() * 2,
       duration: 1.5 + Math.random() * 1.5,
-      scale: 0.8 + Math.random() * 0.4
+      scale: 0.8 + Math.random() * 0.4,
     }))
   }, [positions])
 
@@ -54,15 +54,17 @@ export function Glints({ positions = [], visible = true }: GlintsProps) {
           pointerEvents="none"
           zIndexRange={[0, 0]}
         >
-          <div 
+          <div
             className="glint-container"
-            style={{
-              '--glint-delay': `${glint.delay}s`,
-              '--glint-duration': `${glint.duration}s`,
-              '--glint-scale': glint.scale,
-              width: baseSize,
-              height: baseSize,
-            } as any}
+            style={
+              {
+                '--glint-delay': `${glint.delay}s`,
+                '--glint-duration': `${glint.duration}s`,
+                '--glint-scale': glint.scale,
+                width: baseSize,
+                height: baseSize,
+              } as any
+            }
           >
             <svg viewBox="0 0 256 256" className="glint-svg">
               <defs>

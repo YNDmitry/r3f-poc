@@ -55,16 +55,17 @@ export function ArcadeScene({
       {/* Reduced environment resolution for FPS boost */}
       <Environment preset="city" blur={1.0} background={false} resolution={256} />
 
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[3.5, 5.5, 6.5]} intensity={1.8} />
-      <directionalLight position={[-6.5, 2.5, 4.0]} intensity={1.0} color="#bcd7ff" />
-      <directionalLight position={[0.0, 4.0, -6.0]} intensity={1.5} />
+      <ambientLight intensity={0.95} />
+      <directionalLight position={[3.5, 5.5, 6.5]} intensity={2.2} />
+      <directionalLight position={[-6.5, 2.5, 4.0]} intensity={1.25} color="#bcd7ff" />
+      <directionalLight position={[0.0, 4.0, -6.0]} intensity={1.9} />
 
       <group position={stagePos}>
         <ArcadeMachine
           state={!isSwapped ? 'front' : 'back'}
           url={modelA}
           glintPositions={ARCADE_CONSTANTS.glints.modelA}
+          frosted={false}
           onClick={() => {
             if (isSwapped) setIsSwapped(false)
           }}
@@ -74,6 +75,7 @@ export function ArcadeScene({
           state={isSwapped ? 'front' : 'back'}
           url={modelB}
           glintPositions={ARCADE_CONSTANTS.glints.modelB}
+          frosted={true}
           onClick={() => {
             if (!isSwapped) setIsSwapped(true)
           }}

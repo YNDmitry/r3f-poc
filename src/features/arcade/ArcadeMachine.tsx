@@ -13,9 +13,16 @@ interface ArcadeMachineProps {
   url: string
   glintPositions?: [number, number, number][]
   onClick: (e: ThreeEvent<MouseEvent>) => void
+  frosted?: boolean
 }
 
-export function ArcadeMachine({ state, url, glintPositions = [], onClick }: ArcadeMachineProps) {
+export function ArcadeMachine({
+  state,
+  url,
+  glintPositions = [],
+  onClick,
+  frosted = true,
+}: ArcadeMachineProps) {
   const { invalidate } = useThree()
   const { states } = ARCADE_CONSTANTS
   const { trigger } = useWebflow()
@@ -34,7 +41,7 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
   const progress = useSpring(isFront ? 1 : 0, {
     stiffness: 65,
     damping: 26,
-    mass: 1.2
+    mass: 1.2,
   })
 
   useEffect(() => {
@@ -50,11 +57,19 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
   const finalPosX = isFront ? posX : altPosX
   const finalPosZ = isFront ? posZ : altPosZ
 
-  const posY = useTransform(progress, [0, 0.5, 1], [backCfg.pos[1], backCfg.pos[1] + 0.08, frontCfg.pos[1]])
+  const posY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [backCfg.pos[1], backCfg.pos[1] + 0.08, frontCfg.pos[1]]
+  )
   const rotX = useTransform(progress, [0, 1], [backCfg.rot[0], frontCfg.rot[0]])
   const rotY = useTransform(progress, [0, 1], [backCfg.rot[1], frontCfg.rot[1]])
   const rotZ = useTransform(progress, [0, 1], [backCfg.rot[2], frontCfg.rot[2]])
-  const scaleValue = useTransform(progress, [0, 1], [backCfg.scale as number, frontCfg.scale as number])
+  const scaleValue = useTransform(
+    progress,
+    [0, 1],
+    [backCfg.scale as number, frontCfg.scale as number]
+  )
 
   const tiltZ = useTransform(
     progress,
@@ -75,9 +90,9 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
 
     const velocity = progress.getVelocity()
     const isMoving = Math.abs(velocity) > 0.001
-    
+
     if (isMoving !== isAnimating) {
-        setIsAnimating(isMoving)
+      setIsAnimating(isMoving)
     }
 
     if (isMoving || Math.abs(targetX - mouse.current.x) > 0.001) {
@@ -97,13 +112,11 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         if (isAnimating) return
-        
+
         if (state === 'back') {
           onClick(e)
-          trigger('From canvas')
-        } else {
-          trigger('From canvas')
         }
+        trigger('From canvas')
       }}
       onPointerOver={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
@@ -133,6 +146,7 @@ export function ArcadeMachine({ state, url, glintPositions = [], onClick }: Arca
               withGlints={state === 'front'}
               glintsVisible={!isAnimating}
               glintPositions={glintPositions}
+              frosted={frosted}
             />
           </motion.group>
         </group>

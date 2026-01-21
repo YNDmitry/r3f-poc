@@ -16,8 +16,16 @@ export const ARCADE_CONSTANTS = {
         rot: [0.4, -0.5, -0.03] as [number, number, number],
         scale: 1,
       },
-      tablet: { pos: [0.2, 0, 0.4] as [number, number, number], rot: [0.4, -0.5, 0] as [number, number, number], scale: 1 },
-      mobile: { pos: [0.2, 0, 0.4] as [number, number, number], rot: [0.4, -0.5, 0] as [number, number, number], scale: 1 },
+      tablet: {
+        pos: [0.2, 0, 0.4] as [number, number, number],
+        rot: [0.4, -0.5, 0] as [number, number, number],
+        scale: 1,
+      },
+      mobile: {
+        pos: [0.2, 0, 0.4] as [number, number, number],
+        rot: [0.4, -0.5, 0] as [number, number, number],
+        scale: 1,
+      },
     },
     back: {
       desktop: {
@@ -56,6 +64,23 @@ export const ARCADE_CONSTANTS = {
       [0, 1.5, 0.15], // Screen Top
       [0.2, 1.78, 0.15], // Speaker
     ] as [number, number, number][],
+  },
+  posterGlints: {
+    desktop: {
+      offset: [0, 0, 0] as [number, number, number],
+      scale: 1,
+      models: ['modelA', 'modelB'] as const,
+    },
+    tablet: {
+      offset: [0.02, -0.06, 0] as [number, number, number],
+      scale: 0.95,
+      models: ['modelB'] as const,
+    },
+    mobile: {
+      offset: [0.35, 0.1, 0.4] as [number, number, number],
+      scale: 1.05,
+      models: ['modelB'] as const,
+    },
   },
 } as const
 

@@ -1,9 +1,6 @@
 .scene-poster {
   position: absolute;
   inset: 0;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
   transition:
     opacity 1.5s ease-in-out,
     transform 2s ease-out;
@@ -11,6 +8,12 @@
   z-index: 10;
   opacity: 1;
   transform: scale(1);
+}
+
+.scene-poster--auto {
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .is-ready:not(.is-mobile-arcade) .scene-poster {
@@ -26,6 +29,11 @@
   overflow: hidden;
 }
 
+.r3f-canvas-container.has-poster {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
 .r3f-canvas-element {
   transition: opacity 1.2s ease-in-out;
   position: absolute;
@@ -37,16 +45,14 @@
   inset: 0;
   z-index: 20;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100dvh;
 }
 
 .canvas-box_inner {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 100%;
-  aspect-ratio: 1/1;
-  position: relative;
+  height: 100%;
 }
 
 .canvas-box_canvas {
@@ -56,14 +62,14 @@
 }
 
 @media screen and (max-width: 991px) {
-  .scene-poster {
+  .scene-poster--auto {
     background-position: -5rem 0%;
     background-size: cover;
   }
 }
 
 @media screen and (max-width: 479px) {
-  .scene-poster {
+  .scene-poster--auto {
     background-size: 27rem;
     background-position: -5rem -2rem;
   }

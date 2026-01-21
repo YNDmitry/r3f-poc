@@ -16,11 +16,16 @@ function safeUrl(url: string | null): string | null {
 function parseConfig(el: HTMLElement): WebflowSceneConfig {
   const ds = el.dataset
   const rawType = ds.scene || ds.tres || 'hero-duo'
+  const posterAttr = ds.poster ? ds.poster.trim() : ''
+  const posterFlag = posterAttr.toLowerCase()
+  const hasPoster = posterFlag === 'true' || posterFlag === '1'
+  const posterUrl = !hasPoster && posterAttr && posterFlag !== 'false' ? safeUrl(posterAttr) : null
   return {
     scene: rawType,
     modelA: safeUrl(ds.modelA || null),
     modelB: safeUrl(ds.modelB || null),
-    poster: safeUrl(ds.poster || null),
+    posterUrl,
+    hasPoster,
   }
 }
 

@@ -1,7 +1,7 @@
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { type ThreeEvent, useThree } from '@react-three/fiber'
 import { type TransformData } from '../../config/scene-config'
-import { useState, useRef, useEffect, memo } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { motion } from 'framer-motion-3d'
 import { useMotionValue } from 'framer-motion'
 import { useSceneConfig } from '../../config/SceneContext'
@@ -23,6 +23,11 @@ interface ProductProps {
   onPointerOut?: (e: ThreeEvent<MouseEvent>) => void
 }
 
+type ModelBounds = {
+  center: [number, number, number]
+  size: [number, number, number]
+}
+
 export const Product = memo(function Product({
   mode,
   type,
@@ -40,6 +45,7 @@ export const Product = memo(function Product({
   const isMobile = device === 'mobile' || device === 'tablet'
 
   const isA = type === 'a'
+  const shouldFrost = type === 'b'
   const gridCfg = config.grid[type][device]
   const focusTarget = config.focus[device].target
   const focusBg = config.focus[device].background
@@ -99,9 +105,24 @@ export const Product = memo(function Product({
   }
 
   const opacity = useMotionValue(0)
+  const [bounds, setBounds] = useState<ModelBounds | null>(null)
   const [hovered, setHovered] = useState(false)
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isAnimating = useRef(false)
+
+  const handleBounds = useCallback((nextBounds: ModelBounds) => {
+    setBounds(nextBounds)
+  }, [])
+
+  const hitboxScale = useMemo(() => {
+    if (!bounds) return null
+    const padding = 1.06
+    return [bounds.size[0] * padding, bounds.size[1] * padding, bounds.size[2] * padding] as [
+      number,
+      number,
+      number,
+    ]
+  }, [bounds])
 
   useEffect(() => {
     invalidate()
@@ -132,6 +153,28 @@ export const Product = memo(function Product({
   const isFocused = (mode === 'focus-a' && isA) || (mode === 'focus-b' && !isA)
   const clickStart = useRef({ x: 0, y: 0 })
 
+  const handlePointerDown = (e: ThreeEvent<MouseEvent>) => {
+    if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
+
+    e.stopPropagation()
+    clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
+  }
+
+  const handlePointerUp = (e: ThreeEvent<MouseEvent>) => {
+    if (mode === 'focus-a' || mode === 'focus-b') return
+    if (device === 'tablet' || device === 'mobile') return
+
+    const dx = e.nativeEvent.clientX - clickStart.current.x
+    const dy = e.nativeEvent.clientY - clickStart.current.y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+
+    trigger('From canvas')
+    if (dist < 10) {
+      if (mode === 'grid') e.stopPropagation()
+      onClick(e)
+    }
+  }
+
   return (
     <motion.group
       initial="hidden"
@@ -144,28 +187,6 @@ export const Product = memo(function Product({
       onAnimationComplete={() => {
         isAnimating.current = false
       }}
-      onPointerDown={(e: ThreeEvent<MouseEvent>) => {
-        if ((mode === 'focus-a' && !isA) || (mode === 'focus-b' && isA)) return
-
-        e.stopPropagation()
-        clickStart.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY }
-      }}
-      onPointerUp={(e: ThreeEvent<MouseEvent>) => {
-        if (mode === 'focus-a' || mode === 'focus-b') return
-        if (device === 'tablet' || device === 'mobile') return
-
-        const dx = e.nativeEvent.clientX - clickStart.current.x
-        const dy = e.nativeEvent.clientY - clickStart.current.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-
-        if (dist < 10) {
-          if (mode === 'grid') e.stopPropagation()
-          onClick(e)
-          trigger('From canvas')
-        }
-      }}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
       onUpdate={(latest: any) => {
         if (typeof latest.opacity === 'number') {
           opacity.set(latest.opacity)
@@ -180,7 +201,26 @@ export const Product = memo(function Product({
         transition={{ duration: 0.5, ease: 'easeOut' }}
         onUpdate={() => invalidate()}
       >
-        <ProductModel url={url} opacityValue={opacity} />
+        {mode === 'grid' && bounds && hitboxScale && (
+          <mesh
+            position={bounds.center}
+            scale={hitboxScale}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerOver={handlePointerOver}
+            onPointerOut={handlePointerOut}
+          >
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
+          </mesh>
+        )}
+        <ProductModel
+          url={url}
+          opacityValue={opacity}
+          raycastMode="none"
+          onBounds={handleBounds}
+          frosted={shouldFrost}
+        />
         <Hotspots type={type} active={isFocused} controlsRef={controlsRef} visible={!isRotating} />
       </motion.group>
     </motion.group>

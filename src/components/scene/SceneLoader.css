@@ -1,0 +1,60 @@
+.scene-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11000;
+  font-family: 'Typodermic joystixmonospace', sans-serif;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  pointer-events: auto;
+  cursor: progress;
+}
+
+.scene-loader__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.scene-loader__spinner {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: loader-spin 0.9s linear infinite;
+}
+
+.scene-loader__percent {
+  font-weight: 400;
+}
+
+.scene-loader__detail {
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .scene-loader__panel {
+    transform: scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-loader__spinner {
+    animation: none;
+  }
+}
