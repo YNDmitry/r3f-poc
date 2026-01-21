@@ -9,7 +9,7 @@ interface SceneLoaderProps {
 }
 
 export function SceneLoader({ enabled = true, isReady, minDuration = 650 }: SceneLoaderProps) {
-  const { active, progress, item, loaded, total } = useProgress()
+  const { active, progress } = useProgress()
   const [visible, setVisible] = useState(false)
   const shownAtRef = useRef<number | null>(null)
 

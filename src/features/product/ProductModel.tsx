@@ -83,9 +83,11 @@ export function ProductModel({
 
     const scheduleIdle = (cb: () => void) => {
       if (typeof window === 'undefined') return setTimeout(cb, 1)
-      const idle = (window as Window & {
-        requestIdleCallback?: (handler: () => void, options?: { timeout: number }) => number
-      }).requestIdleCallback
+      const idle = (
+        window as Window & {
+          requestIdleCallback?: (handler: () => void, options?: { timeout: number }) => number
+        }
+      ).requestIdleCallback
       return idle ? idle(cb, { timeout: 250 }) : window.setTimeout(cb, 1)
     }
 
@@ -141,12 +143,6 @@ export function ProductModel({
         if (typeof mat.clearcoatRoughness === 'number') {
           mat.clearcoatRoughness = 1
         }
-        if (typeof mat.specularIntensity === 'number') {
-          mat.specularIntensity = 0
-        }
-        if (typeof mat.specularColor !== 'undefined') {
-          mat.specularColor = FROSTED_TINT
-        }
         if (typeof mat.transmission === 'number') {
           mat.transmission = 0
           if (typeof mat.thickness === 'number') {
@@ -154,9 +150,6 @@ export function ProductModel({
           }
           if (typeof mat.ior === 'number') {
             mat.ior = 1.1
-          }
-          if (typeof mat.attenuationColor !== 'undefined') {
-            mat.attenuationColor = FROSTED_TINT
           }
         }
 
@@ -241,9 +234,11 @@ export function ProductModel({
       })
 
       if (planeMesh) {
-        const baseMat = (sourceMat || (planeMesh.material as THREE.Material)) as THREE.Material
+        // @ts-ignore
+        const baseMat = sourceMat as THREE.Material
         const newMat = baseMat.clone() as THREE.MeshStandardMaterial
         newMat.color.set('gray')
+        // @ts-ignore
         planeMesh.material = newMat
         prepareMaterial(newMat, false)
       }

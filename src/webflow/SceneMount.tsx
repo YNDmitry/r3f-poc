@@ -180,6 +180,7 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
       const hostInfo = host ? getBackgroundInfo(host) : null
       if (hostInfo) {
         applyBackgroundToPoster(hostInfo)
+        // @ts-ignore
         clearBackground(host)
         return
       }
@@ -273,7 +274,8 @@ export function SceneMount({ config }: { config: WebflowSceneConfig }) {
   }, [config.scene, config.modelA, config.modelB, shouldDisable3D])
 
   const arcadeStagePos = [0, -1.1, -0.5] as [number, number, number]
-  const posterGlints = ARCADE_CONSTANTS.posterGlints[device] || ARCADE_CONSTANTS.posterGlints.desktop
+  const posterGlints =
+    ARCADE_CONSTANTS.posterGlints[device] || ARCADE_CONSTANTS.posterGlints.desktop
   const posterGlintModels = posterGlints.models ?? (['modelA', 'modelB'] as const)
   const glintsPositions = posterGlintModels.flatMap((key) => ARCADE_CONSTANTS.glints[key])
   const glintsStagePos = [

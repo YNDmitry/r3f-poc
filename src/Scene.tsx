@@ -224,7 +224,7 @@ function SceneContent({ modelA, modelB }: { modelA: string; modelB: string }) {
                 if (isPending) return
                 setMode((m) => (m === 'focus-a' ? 'grid' : 'focus-a'))
               })
-              invalidaVbte()
+              invalidate()
             }}
             onPointerOver={() => {
               if (mode === 'grid' && device === 'desktop') document.body.style.cursor = 'pointer'
